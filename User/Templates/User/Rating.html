@@ -276,10 +276,17 @@
                 return false;
             }
             else {
-                //alert(rating_data);
                 $.ajax({
                     url: "{% url 'User:ajaxstar' %}",
-                    data: { rating_data: rating_data, user_name: user_name, user_review: user_review, pid: product_id },
+                    type: "POST",
+                    headers: { "X-CSRFToken": "{{ csrf_token }}" },
+                    data: {
+                        rating_data: rating_data,
+                        user_name: user_name,
+                        user_review: user_review,
+                        pid: product_id,
+                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                    },
                     success: function (data) {
                         $('#review_modal').modal('hide');
                         window.location.reload();

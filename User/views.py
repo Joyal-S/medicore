@@ -2,6 +2,8 @@ from decimal import Decimal
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from django.db.models import Sum, Count
+from django.db import transaction
+from django.views.decorators.http import require_POST
 from django.contrib import messages
 from Guest.models import tbl_registration, tbl_doctor, tbl_shop
 from User.models import (
@@ -9,7 +11,9 @@ from User.models import (
     tbl_booking, tbl_cart, tbl_rating
 )
 from Shop.models import tbl_category, tbl_medicine, tbl_stock
-from mainproject.security import user_required, hash_password, verify_and_upgrade_password
+from mainproject.security import (
+    user_required, hash_password, verify_and_upgrade_password, validate_password_strength
+)
 
 
 
@@ -52,12 +56,14 @@ def changepass(request):
         if verify_and_upgrade_password(user, 'registration_password', old):
             if new != retype:
                 message = "New passwords do not match."
-            elif len(new) < 4:
-                message = "New password must be at least 4 characters long."
             else:
-                user.registration_password = hash_password(new)
-                user.save()
-                message = "Password changed successfully!"
+                is_valid_pwd, pwd_err = validate_password_strength(new)
+                if not is_valid_pwd:
+                    message = pwd_err
+                else:
+                    user.registration_password = hash_password(new)
+                    user.save(update_fields=['registration_password'])
+                    message = "Password changed successfully!"
         else:
             message = "Old password is incorrect."
 
@@ -242,42 +248,43 @@ def Mycart(request):
             messages.error(request, "Your cart is empty. Please add items before checking out.")
             return redirect("User:Mycart")
 
-        # Server-side price calculation and stock validation
-        calculated_total = Decimal("0.00")
-        requires_prescription = False
+        # Server-side price calculation and stock validation inside atomic transaction
+        with transaction.atomic():
+            calculated_total = Decimal("0.00")
+            requires_prescription = False
 
-        for item in cart_items:
-            # Check current available stock
-            total_stock = tbl_stock.objects.filter(medicine=item.medicine).aggregate(total=Sum('stock_qty'))['total'] or 0
-            sold_qty = tbl_cart.objects.filter(
-                medicine=item.medicine,
-                cart_status=1,
-                booking__booking_status__in=[2, 3, 4]
-            ).aggregate(total=Sum('cart_quantity'))['total'] or 0
-            available = total_stock - sold_qty
+            for item in cart_items:
+                # Check current available stock
+                total_stock = tbl_stock.objects.filter(medicine=item.medicine).aggregate(total=Sum('stock_qty'))['total'] or 0
+                sold_qty = tbl_cart.objects.filter(
+                    medicine=item.medicine,
+                    cart_status=1,
+                    booking__booking_status__in=[2, 3, 4]
+                ).aggregate(total=Sum('cart_quantity'))['total'] or 0
+                available = total_stock - sold_qty
 
-            if item.cart_quantity > available:
-                messages.error(
-                    request,
-                    f"Insufficient stock for '{item.medicine.medicine_name}'. "
-                    f"Requested: {item.cart_quantity}, Available: {max(available, 0)}."
-                )
-                return redirect("User:Mycart")
+                if item.cart_quantity > available:
+                    messages.error(
+                        request,
+                        f"Insufficient stock for '{item.medicine.medicine_name}'. "
+                        f"Requested: {item.cart_quantity}, Available: {max(available, 0)}."
+                    )
+                    return redirect("User:Mycart")
 
-            # Snapshot historical unit price
-            item.unit_price = item.medicine.medicine_price
-            item.cart_status = 1
-            item.save()
+                # Snapshot historical unit price
+                item.unit_price = item.medicine.medicine_price
+                item.cart_status = 1
+                item.save()
 
-            line_total = Decimal(item.cart_quantity) * item.medicine.medicine_price
-            calculated_total += line_total
+                line_total = Decimal(item.cart_quantity) * item.medicine.medicine_price
+                calculated_total += line_total
 
-            if item.medicine.medicine_status == 1:
-                requires_prescription = True
+                if item.medicine.medicine_status == 1:
+                    requires_prescription = True
 
-        bookingdata.booking_amount = calculated_total
-        bookingdata.booking_status = 1  # Checkout initiated
-        bookingdata.save()
+            bookingdata.booking_amount = calculated_total
+            bookingdata.booking_status = 1  # Checkout initiated
+            bookingdata.save()
 
         if requires_prescription:
             return redirect("User:addprescription", id=bookingdata.id)
@@ -316,8 +323,9 @@ def payment(request, id):
         return redirect("User:addprescription", id=bookingdata.id)
 
     if request.method == "POST":
-        bookingdata.booking_status = 2  # Paid / Placed
-        bookingdata.save(update_fields=['booking_status'])
+        with transaction.atomic():
+            bookingdata.booking_status = 2  # Paid / Placed
+            bookingdata.save(update_fields=['booking_status'])
         messages.success(request, "Payment successful! Your order has been placed.")
         return redirect("User:payment_suc")
     else:
@@ -330,8 +338,9 @@ def payment_suc(request):
 
 
 @user_required
+@require_POST
 def DelCart(request, did):
-    """Delete a cart item. Enforces ownership of the item and active booking."""
+    """Delete a cart item. Enforces ownership of the item and active booking (POST required)."""
     user = get_object_or_404(tbl_registration, id=request.session["uid"])
     cart_item = get_object_or_404(tbl_cart, id=did, booking__user=user, booking__booking_status=0)
     cart_item.delete()

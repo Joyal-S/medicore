@@ -109,7 +109,7 @@
                     {% for cart_item in order.tbl_cart_set.all %}
                     <tr>
                         <td>{{ forloop.parentloop.counter }}</td>
-                        <td><img src="{{ cart_item.medicine.medicine_photo.url }}" alt="Medicine Photo"></td>
+                        <td>{% if cart_item.medicine.medicine_photo %}<img src="{{ cart_item.medicine.medicine_photo.url }}" alt="Medicine Photo">{% else %}<span>No Image</span>{% endif %}</td>
                         <td>{{ cart_item.medicine.medicine_name }}</td>
                         <td>{{ cart_item.medicine.category.category_name }}</td>
                         <td><strong>₹{{ order.booking_amount }}</strong></td>

@@ -1,10 +1,13 @@
 from decimal import Decimal
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.views.decorators.http import require_POST
 from Guest.models import tbl_shop
 from Shop.models import tbl_category, tbl_medicine, tbl_stock
 from User.models import tbl_booking
-from mainproject.security import shop_required, hash_password, verify_and_upgrade_password
+from mainproject.security import (
+    shop_required, hash_password, verify_and_upgrade_password, validate_password_strength
+)
 
 
 @shop_required
@@ -46,12 +49,14 @@ def changepass(request):
         if verify_and_upgrade_password(shop, 'shop_password', old):
             if new != retype:
                 message = "New passwords do not match."
-            elif len(new) < 4:
-                message = "New password must be at least 4 characters long."
             else:
-                shop.shop_password = hash_password(new)
-                shop.save()
-                message = "Password changed successfully!"
+                is_valid_pwd, pwd_err = validate_password_strength(new)
+                if not is_valid_pwd:
+                    message = pwd_err
+                else:
+                    shop.shop_password = hash_password(new)
+                    shop.save(update_fields=['shop_password'])
+                    message = "Password changed successfully!"
         else:
             message = "Old password is incorrect."
 
@@ -115,15 +120,18 @@ def medicine(request):
 
 
 @shop_required
-def deletemed(request, deletemed):
-    """Delete a medicine belonging to the logged-in shop (POST required)."""
+@require_POST
+def deletemed(request, deletemed=None, deletmed=None, **kwargs):
+    """Delete a medicine belonging to the logged-in shop (POST strictly required)."""
+    med_id = deletemed if deletemed is not None else (deletmed if deletmed is not None else kwargs.get('id'))
     shop = get_object_or_404(tbl_shop, id=request.session["sid"])
-    med = get_object_or_404(tbl_medicine, id=deletemed, shop=shop)
-    if request.method == "POST" or request.method == "GET":
-        med_name = med.medicine_name
-        med.delete()
-        messages.success(request, f"Medicine '{med_name}' deleted.")
+    med = get_object_or_404(tbl_medicine, id=med_id, shop=shop)
+    med_name = med.medicine_name
+    med.delete()
+    messages.success(request, f"Medicine '{med_name}' deleted.")
     return redirect("Shop:medicine")
+
+deletmed = deletemed
 
 
 @shop_required
@@ -161,6 +169,7 @@ def booking(request):
 
 
 @shop_required
+@require_POST
 def packing(request, id):
     """Mark an order status as Packing (status=3). Enforces shop association."""
     shop = get_object_or_404(tbl_shop, id=request.session["sid"])
@@ -172,6 +181,7 @@ def packing(request, id):
 
 
 @shop_required
+@require_POST
 def delivery(request, id):
     """Mark an order status as Delivered (status=4). Enforces shop association."""
     shop = get_object_or_404(tbl_shop, id=request.session["sid"])
@@ -185,3 +195,4 @@ def delivery(request, id):
 def slogout(request):
     request.session.flush()
     return redirect('Guest:login')
+

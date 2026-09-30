@@ -338,7 +338,11 @@
             {% for i in cartdata %}
         <div class="medicine">
             <div class="medicine-image">
-                <img src="{{i.medicine.medicine_photo.url}}">
+                {% if i.medicine.medicine_photo %}
+                    <img src="{{i.medicine.medicine_photo.url}}" alt="{{ i.medicine.medicine_name }}">
+                {% else %}
+                    <div style="width:100px;height:100px;background:#eee;display:flex;align-items:center;justify-content:center;color:#888;border-radius:5px;">No Image</div>
+                {% endif %}
             </div>
             <div class="medicine-details">
                 <div class="medicine-title">{{i.medicine.medicine_name}}</div>
@@ -351,8 +355,10 @@
 
             </div>
             <div class="medicine-removal">
-                <div class="medicine-title"><a href="{% url 'User:delcart' i.id  %}" >Remove</a></div>
-
+                <form method="POST" action="{% url 'User:delcart' i.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" style="background:#e74c3c;color:#fff;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;">Remove</button>
+                </form>
             </div>
             <div class="medicine-line-price">
                 {{i.cart_quantity|mul:i.medicine.medicine_price}}

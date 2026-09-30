@@ -138,6 +138,13 @@ SESSION_COOKIE_AGE = 86400  # 24 hours
 SESSION_SAVE_EVERY_REQUEST = True
 CSRF_COOKIE_HTTPONLY = False
 
+# Security headers & flags
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+CSRF_COOKIE_SECURE = os.environ.get('DJANGO_SECURE_SSL', 'False').lower() in ('true', '1', 't')
+SESSION_COOKIE_SECURE = os.environ.get('DJANGO_SECURE_SSL', 'False').lower() in ('true', '1', 't')
+
 # Password hashers
 PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.PBKDF2PasswordHasher',

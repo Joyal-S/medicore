@@ -1,10 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django.contrib import messages
+from django.views.decorators.http import require_POST
 from Admin.models import tbl_district, tbl_adminregistration, tbl_categary, tbl_place, tbl_scategary
 from Guest.models import tbl_registration, tbl_doctor, tbl_shop
 from User.models import tbl_complaints
-from mainproject.security import admin_required, hash_password, verify_and_upgrade_password
+from mainproject.security import (
+    admin_required, hash_password, verify_and_upgrade_password, validate_password_strength
+)
 
 
 @admin_required
@@ -21,6 +24,7 @@ def district(request):
 
 
 @admin_required
+@require_POST
 def deletdistrict(request, deletdistrict):
     dis = get_object_or_404(tbl_district, id=deletdistrict)
     dname = dis.district_name
@@ -56,6 +60,11 @@ def registration(request):
             messages.error(request, "Please fill in all required fields.")
             return render(request, 'Admin/AdminRegistration.html', {'registration': admins})
 
+        is_valid_pwd, pwd_err = validate_password_strength(raw_password)
+        if not is_valid_pwd:
+            messages.error(request, pwd_err)
+            return render(request, 'Admin/AdminRegistration.html', {'registration': admins})
+
         hashed_password = hash_password(raw_password)
         tbl_adminregistration.objects.create(
             registration_name=name,
@@ -70,6 +79,7 @@ def registration(request):
 
 
 @admin_required
+@require_POST
 def deletregister(request, deletregister):
     admin = get_object_or_404(tbl_adminregistration, id=deletregister)
     admin.delete()
@@ -85,6 +95,10 @@ def editregister(request, editregister):
         admin.registration_email = request.POST.get("email", "").strip()
         raw_pwd = request.POST.get("password", "")
         if raw_pwd and not raw_pwd.startswith('pbkdf2_'):
+            is_valid_pwd, pwd_err = validate_password_strength(raw_pwd)
+            if not is_valid_pwd:
+                messages.error(request, pwd_err)
+                return render(request, 'Admin/AdminRegistration.html', {'dis': admin})
             admin.registration_password = hash_password(raw_pwd)
         admin.save()
         messages.success(request, "Admin account updated.")
@@ -107,6 +121,7 @@ def categary(request):
 
 
 @admin_required
+@require_POST
 def deletcategary(request, deletcategary):
     cat = get_object_or_404(tbl_categary, id=deletcategary)
     cat.delete()
@@ -145,6 +160,7 @@ def place(request):
 
 
 @admin_required
+@require_POST
 def deletplace(request, deletplace):
     pl = get_object_or_404(tbl_place, id=deletplace)
     pl.delete()
@@ -184,6 +200,7 @@ def scategary(request):
 
 
 @admin_required
+@require_POST
 def deletsub(request, deletsub):
     sub = get_object_or_404(tbl_scategary, id=deletsub)
     sub.delete()
@@ -238,6 +255,7 @@ def shoplist(request):
 
 
 @admin_required
+@require_POST
 def accept(request, id):
     shop = get_object_or_404(tbl_shop, id=id)
     shop.shop_status = 1
@@ -247,6 +265,7 @@ def accept(request, id):
 
 
 @admin_required
+@require_POST
 def reject(request, id):
     shop = get_object_or_404(tbl_shop, id=id)
     shop.shop_status = 2
@@ -268,6 +287,7 @@ def doctorlist(request):
 
 
 @admin_required
+@require_POST
 def acceptd(request, id):
     doctor = get_object_or_404(tbl_doctor, id=id)
     doctor.doctor_status = 1
@@ -277,6 +297,7 @@ def acceptd(request, id):
 
 
 @admin_required
+@require_POST
 def rejectd(request, id):
     doctor = get_object_or_404(tbl_doctor, id=id)
     doctor.doctor_status = 2
@@ -342,12 +363,14 @@ def changepass(request):
         if verify_and_upgrade_password(admin, 'registration_password', old):
             if new != retype:
                 message = "New passwords do not match."
-            elif len(new) < 4:
-                message = "New password must be at least 4 characters long."
             else:
-                admin.registration_password = hash_password(new)
-                admin.save()
-                message = "Password changed successfully!"
+                is_valid_pwd, pwd_err = validate_password_strength(new)
+                if not is_valid_pwd:
+                    message = pwd_err
+                else:
+                    admin.registration_password = hash_password(new)
+                    admin.save(update_fields=['registration_password'])
+                    message = "Password changed successfully!"
         else:
             message = "Old password is incorrect."
 

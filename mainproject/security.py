@@ -6,6 +6,8 @@ Includes password hashing with transparent legacy migration and role-based acces
 from functools import wraps
 from django.shortcuts import redirect
 from django.contrib.auth.hashers import make_password, check_password
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 from django.contrib import messages
 from django.http import HttpResponseForbidden
 
@@ -14,6 +16,19 @@ def hash_password(raw_password):
     if not raw_password:
         return ""
     return make_password(raw_password)
+
+def validate_password_strength(raw_password):
+    """
+    Validate that the password meets security strength requirements.
+    Returns (True, None) if valid, or (False, error_message) if invalid.
+    """
+    if not raw_password or len(raw_password) < 8:
+        return False, "Password must be at least 8 characters long."
+    try:
+        validate_password(raw_password)
+        return True, None
+    except ValidationError as e:
+        return False, "; ".join(e.messages)
 
 def verify_and_upgrade_password(instance, password_attr, raw_password):
     """
@@ -50,7 +65,8 @@ def admin_required(view_func):
     @wraps(view_func)
     def _wrapped(request, *args, **kwargs):
         aid = request.session.get("aid")
-        if not aid:
+        role = request.session.get("role")
+        if not aid or role != "admin":
             messages.error(request, "Please log in as an administrator to access this page.")
             return redirect("Guest:login")
         from Admin.models import tbl_adminregistration
@@ -67,7 +83,8 @@ def user_required(view_func):
     @wraps(view_func)
     def _wrapped(request, *args, **kwargs):
         uid = request.session.get("uid")
-        if not uid:
+        role = request.session.get("role")
+        if not uid or role != "user":
             messages.error(request, "Please log in to access this page.")
             return redirect("Guest:login")
         from Guest.models import tbl_registration
@@ -84,7 +101,8 @@ def doctor_required(view_func):
     @wraps(view_func)
     def _wrapped(request, *args, **kwargs):
         did = request.session.get("did")
-        if not did:
+        role = request.session.get("role")
+        if not did or role != "doctor":
             messages.error(request, "Please log in as a doctor to access this page.")
             return redirect("Guest:login")
         from Guest.models import tbl_doctor
@@ -105,7 +123,8 @@ def shop_required(view_func):
     @wraps(view_func)
     def _wrapped(request, *args, **kwargs):
         sid = request.session.get("sid")
-        if not sid:
+        role = request.session.get("role")
+        if not sid or role != "shop":
             messages.error(request, "Please log in as a shop to access this page.")
             return redirect("Guest:login")
         from Guest.models import tbl_shop
@@ -119,3 +138,4 @@ def shop_required(view_func):
             return redirect("Guest:login")
         return view_func(request, *args, **kwargs)
     return _wrapped
+

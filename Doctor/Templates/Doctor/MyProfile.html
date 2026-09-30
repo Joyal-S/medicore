@@ -110,7 +110,11 @@
         <h1>doctor Profile</h1>
         <h2>Edit Your Information</h2>
         <div class="profile-pic">
-            <img src="{{doctor.doctor_photo.url}}" alt="Profile Picture">
+            {% if doctor.doctor_photo %}
+                <img src="{{doctor.doctor_photo.url}}" alt="Profile Picture">
+            {% else %}
+                <div style="width:120px;height:120px;background:#ddd;border-radius:50%;margin:0 auto;display:flex;align-items:center;justify-content:center;">No Photo</div>
+            {% endif %}
         </div>
         <table>
             <tr>

@@ -48,7 +48,10 @@
                                             <a href="{% url 'Admin:editdistrict' i.id %}" class="btn btn-warning btn-sm">Edit</a>
                                         </td>
                                         <td class="text-center">
-                                            <a href="{% url 'Admin:deletdistrict' i.id %}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')">Delete</a>
+                                            <form method="POST" action="{% url 'Admin:deletdistrict' i.id %}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this district?');">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                            </form>
                                         </td>
                                     </tr>
                                     {% empty %}

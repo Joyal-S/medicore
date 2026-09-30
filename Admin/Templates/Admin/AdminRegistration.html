@@ -144,8 +144,13 @@
         </td>
         <td>{{ i.registration_name }}</td>
         <td>{{ i.registration_email }}</td>
-        <td>{{ i.registration_password }}</td>
-        <td><a href="{% url 'Admin:deletregister' i.id %}">Delete</a></td>
+        <td>••••••••</td>
+        <td>
+            <form method="POST" action="{% url 'Admin:deletregister' i.id %}" style="display:inline;" onsubmit="return confirm('Are you sure you want to remove this admin?');">
+                {% csrf_token %}
+                <button type="submit" style="background:#e74c3c;color:#fff;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;">Delete</button>
+            </form>
+        </td>
         <td><a href="{% url 'Admin:editregister' i.id %}">Edit</a></td>
     </tr>
     {% endfor %}

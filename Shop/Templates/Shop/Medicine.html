@@ -208,7 +208,7 @@
         {% for i in medicine %}    
         <tr>
             <td>{{ forloop.counter }}</td>
-            <td><img src="{{ i.medicine_photo.url }}" class="medicine-photo" alt="Medicine Image"></td>
+            <td>{% if i.medicine_photo %}<img src="{{ i.medicine_photo.url }}" class="medicine-photo" alt="Medicine Image">{% else %}<span>No Image</span>{% endif %}</td>
             <td>{{ i.medicine_name }}</td>
             <td>{{ i.medicine_details }}</td>
             <td>₹{{ i.medicine_price }}</td>

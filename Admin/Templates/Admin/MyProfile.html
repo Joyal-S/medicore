@@ -25,7 +25,11 @@
 
                         <!-- Profile Picture -->
                         <div class="mb-3">
-                            <img src="{{ admin.registration_photo.url }}" alt="Admin Photo" class="rounded-circle border" width="120" height="120">
+                            {% if admin.registration_photo %}
+                                <img src="{{ admin.registration_photo.url }}" alt="Admin Photo" class="rounded-circle border" width="120" height="120">
+                            {% else %}
+                                <span class="badge badge-secondary p-3">No Photo</span>
+                            {% endif %}
                         </div>
 
                         <!-- Profile Info -->

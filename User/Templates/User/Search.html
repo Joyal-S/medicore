@@ -33,12 +33,15 @@
         {% for i in med %}
         <tr>
             <td>{{ forloop.counter }}</td>
-            <td><img src="{{ i.medicine_photo.url }}" alt="Medicine Photo"></td>
+            <td>{% if i.medicine_photo %}<img src="{{ i.medicine_photo.url }}" alt="Medicine Photo">{% else %}<span>No Image</span>{% endif %}</td>
             <td>{{ i.medicine_name }}</td>
             <td>{{ i.medicine_details }}</td>
             <td>{{ i.category.category_name}}</td>
             <td>
-                <a href="{% url 'User:Addcart' i.id %}" class="request-btn">Addcart</a>
+                <form method="POST" action="{% url 'User:Addcart' i.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="request-btn" style="border:none;cursor:pointer;">Add to Cart</button>
+                </form>
             </td>
         </tr>
         {% endfor %}

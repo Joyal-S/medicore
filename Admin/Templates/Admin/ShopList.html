@@ -41,8 +41,8 @@
                                     {% for i in shop %}
                                     <tr>
                                         <td>{{ forloop.counter }}</td>
-                                        <td><img src="{{ i.shop_photo.url }}" width="70" height="70" class="rounded border" alt="Photo"></td>
-                                        <td><img src="{{ i.shop_licese.url }}" width="70" height="70" class="rounded border" alt="License"></td>
+                                        <td>{% if i.shop_photo %}<img src="{{ i.shop_photo.url }}" width="70" height="70" class="rounded border" alt="Photo">{% else %}<span class="badge badge-secondary">No Photo</span>{% endif %}</td>
+                                        <td>{% if i.shop_licese %}<img src="{{ i.shop_licese.url }}" width="70" height="70" class="rounded border" alt="License">{% else %}<span class="badge badge-secondary">No License</span>{% endif %}</td>
                                         <td>{{ i.shop_name }}</td>
                                         <td>{{ i.shop_email }}</td>
                                         <td>{{ i.shop_contact }}</td>
@@ -97,8 +97,8 @@
                                     {% for i in accept %}
                                     <tr>
                                         <td>{{ forloop.counter }}</td>
-                                        <td><img src="{{ i.shop_photo.url }}" width="70" height="70" class="rounded border" alt="Photo"></td>
-                                        <td><img src="{{ i.shop_licese.url }}" width="70" height="70" class="rounded border" alt="License"></td>
+                                        <td>{% if i.shop_photo %}<img src="{{ i.shop_photo.url }}" width="70" height="70" class="rounded border" alt="Photo">{% else %}<span class="badge badge-secondary">No Photo</span>{% endif %}</td>
+                                        <td>{% if i.shop_licese %}<img src="{{ i.shop_licese.url }}" width="70" height="70" class="rounded border" alt="License">{% else %}<span class="badge badge-secondary">No License</span>{% endif %}</td>
                                         <td>{{ i.shop_name }}</td>
                                         <td>{{ i.shop_email }}</td>
                                         <td>{{ i.shop_contact }}</td>
@@ -149,8 +149,8 @@
                                     {% for i in reject %}
                                     <tr>
                                         <td>{{ forloop.counter }}</td>
-                                        <td><img src="{{ i.shop_photo.url }}" width="70" height="70" class="rounded border" alt="Photo"></td>
-                                        <td><img src="{{ i.shop_licese.url }}" width="70" height="70" class="rounded border" alt="License"></td>
+                                        <td>{% if i.shop_photo %}<img src="{{ i.shop_photo.url }}" width="70" height="70" class="rounded border" alt="Photo">{% else %}<span class="badge badge-secondary">No Photo</span>{% endif %}</td>
+                                        <td>{% if i.shop_licese %}<img src="{{ i.shop_licese.url }}" width="70" height="70" class="rounded border" alt="License">{% else %}<span class="badge badge-secondary">No License</span>{% endif %}</td>
                                         <td>{{ i.shop_name }}</td>
                                         <td>{{ i.shop_email }}</td>
                                         <td>{{ i.shop_contact }}</td>

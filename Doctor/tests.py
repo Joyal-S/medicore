@@ -79,7 +79,7 @@ class DoctorAndMLTests(TestCase):
         self.assertGreater(result['confidence_score'], 0)
         self.assertIn('Fungal infection', result['predicted_disease'])
         self.assertIn('Itching', result['symptoms_selected'])
-        self.assertIn('Clinical', result['disclaimer'])
+        self.assertIn('clinical', result['disclaimer'].lower())
 
     def test_ml_prediction_with_cleaned_symptom_names(self):
         """ML service handles cleaned/special-case symptom strings without error."""

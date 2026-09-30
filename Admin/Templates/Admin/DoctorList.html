@@ -40,8 +40,8 @@
                                     {% for i in doctor %}
                                     <tr>
                                         <td>{{ forloop.counter }}</td>
-                                        <td><img src="{{ i.doctor_photo.url }}" width="70" height="70" class="rounded border" alt="Doctor Photo"></td>
-                                        <td><img src="{{ i.doctor_licese.url }}" width="70" height="70" class="rounded border" alt="Doctor License"></td>
+                                        <td>{% if i.doctor_photo %}<img src="{{ i.doctor_photo.url }}" width="70" height="70" class="rounded border" alt="Doctor Photo">{% else %}<span class="badge badge-secondary">No Photo</span>{% endif %}</td>
+                                        <td>{% if i.doctor_licese %}<img src="{{ i.doctor_licese.url }}" width="70" height="70" class="rounded border" alt="Doctor License">{% else %}<span class="badge badge-secondary">No License</span>{% endif %}</td>
                                         <td>{{ i.doctor_name }}</td>
                                         <td>{{ i.doctor_email }}</td>
                                         <td>{{ i.doctor_contact }}</td>
@@ -94,8 +94,8 @@
                                     {% for i in acceptd %}
                                     <tr>
                                         <td>{{ forloop.counter }}</td>
-                                        <td><img src="{{ i.doctor_photo.url }}" width="70" height="70" class="rounded border" alt="Doctor Photo"></td>
-                                        <td><img src="{{ i.doctor_licese.url }}" width="70" height="70" class="rounded border" alt="Doctor License"></td>
+                                        <td>{% if i.doctor_photo %}<img src="{{ i.doctor_photo.url }}" width="70" height="70" class="rounded border" alt="Doctor Photo">{% else %}<span class="badge badge-secondary">No Photo</span>{% endif %}</td>
+                                        <td>{% if i.doctor_licese %}<img src="{{ i.doctor_licese.url }}" width="70" height="70" class="rounded border" alt="Doctor License">{% else %}<span class="badge badge-secondary">No License</span>{% endif %}</td>
                                         <td>{{ i.doctor_name }}</td>
                                         <td>{{ i.doctor_email }}</td>
                                         <td>{{ i.doctor_contact }}</td>
@@ -144,8 +144,8 @@
                                     {% for i in rejectd %}
                                     <tr>
                                         <td>{{ forloop.counter }}</td>
-                                        <td><img src="{{ i.doctor_photo.url }}" width="70" height="70" class="rounded border" alt="Doctor Photo"></td>
-                                        <td><img src="{{ i.doctor_licese.url }}" width="70" height="70" class="rounded border" alt="Doctor License"></td>
+                                        <td>{% if i.doctor_photo %}<img src="{{ i.doctor_photo.url }}" width="70" height="70" class="rounded border" alt="Doctor Photo">{% else %}<span class="badge badge-secondary">No Photo</span>{% endif %}</td>
+                                        <td>{% if i.doctor_licese %}<img src="{{ i.doctor_licese.url }}" width="70" height="70" class="rounded border" alt="Doctor License">{% else %}<span class="badge badge-secondary">No License</span>{% endif %}</td>
                                         <td>{{ i.doctor_name }}</td>
                                         <td>{{ i.doctor_email }}</td>
                                         <td>{{ i.doctor_contact }}</td>

@@ -119,7 +119,10 @@
             <td>{{ i.medicine_details }}</td>
             <td>{{ i.category.category_name}}</td>
             <td>
-                <a href="{% url 'User:Addcart' i.id %}" class="request-btn">Addcart</a>
+                <form method="POST" action="{% url 'User:Addcart' i.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="request-btn" style="border:none;cursor:pointer;">Add to Cart</button>
+                </form>
             </td>
         </tr>
         {% endfor %}

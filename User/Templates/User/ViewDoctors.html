@@ -119,8 +119,8 @@
             {% for i,j in doctor %}
             <tr>
                 <td>{{ forloop.counter }}</td>
-                <td><img src="{{ i.doctor_photo.url }}" alt="Doctor Photo"></td>
-                <td><img src="{{ i.doctor_licese.url }}" alt="License Photo"></td>
+                <td>{% if i.doctor_photo %}<img src="{{ i.doctor_photo.url }}" alt="Doctor Photo">{% else %}<span>No Photo</span>{% endif %}</td>
+                <td>{% if i.doctor_licese %}<img src="{{ i.doctor_licese.url }}" alt="License Photo">{% else %}<span>No License</span>{% endif %}</td>
                 <td><span class="doctor-name">{{ i.doctor_name }}</span></td>
                 <td>{{ i.doctor_email }}</td>
                 <td>{{ i.doctor_contact }}</td>

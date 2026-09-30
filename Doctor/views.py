@@ -4,12 +4,14 @@ from Guest.models import tbl_doctor
 from User.models import tbl_request, tbl_prescription
 from Doctor.models import tbl_disease
 from Doctor.ml_service import predict_from_symptoms, FRONTEND_SYMPTOMS
-from mainproject.security import doctor_required, hash_password, verify_and_upgrade_password
+from mainproject.security import (
+    doctor_required, hash_password, verify_and_upgrade_password, validate_password_strength
+)
 
 
 @doctor_required
 def home(request):
-    doctor = tbl_doctor.objects.get(id=request.session["did"])
+    doctor = get_object_or_404(tbl_doctor, id=request.session["did"])
     pending_count = tbl_request.objects.filter(dotor=doctor, request_status=0).count()
     return render(request, 'Doctor/Home.html', {'doctor': doctor, 'pending_count': pending_count})
 
@@ -46,12 +48,14 @@ def changepass(request):
         if verify_and_upgrade_password(doctor, 'doctor_password', old):
             if new != retype:
                 message = "New passwords do not match."
-            elif len(new) < 4:
-                message = "New password must be at least 4 characters long."
             else:
-                doctor.doctor_password = hash_password(new)
-                doctor.save()
-                message = "Password changed successfully!"
+                is_valid_pwd, pwd_err = validate_password_strength(new)
+                if not is_valid_pwd:
+                    message = pwd_err
+                else:
+                    doctor.doctor_password = hash_password(new)
+                    doctor.save(update_fields=['doctor_password'])
+                    message = "Password changed successfully!"
         else:
             message = "Old password is incorrect."
 
