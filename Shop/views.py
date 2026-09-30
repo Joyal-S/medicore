@@ -1,9 +1,10 @@
 from decimal import Decimal
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.db import transaction
 from django.views.decorators.http import require_POST
 from Guest.models import tbl_shop
-from Shop.models import tbl_category, tbl_medicine, tbl_stock
+from .models import tbl_category, tbl_medicine, tbl_stock
 from User.models import tbl_booking
 from mainproject.security import (
     shop_required, hash_password, verify_and_upgrade_password, validate_password_strength
@@ -150,7 +151,8 @@ def addstock(request, mid):
             messages.error(request, "Please enter a valid positive stock quantity.")
             return render(request, 'Shop/AddStock.html', {'medicine': med})
 
-        tbl_stock.objects.create(medicine=med, stock_qty=qty)
+        with transaction.atomic():
+            tbl_stock.objects.create(medicine=med, stock_qty=qty)
         messages.success(request, f"Added {qty} units of stock for '{med.medicine_name}'.")
         return redirect("Shop:medicine")
     else:
@@ -164,7 +166,7 @@ def booking(request):
     bookings = tbl_booking.objects.filter(
         booking_status__in=[2, 3, 4],
         tbl_cart__medicine__shop=shop
-    ).distinct().select_related('user').order_by('-booking_date')
+    ).distinct().select_related('user').prefetch_related('tbl_cart_set__medicine').order_by('-booking_date')
     return render(request, 'Shop/Booking.html', {'booking': bookings})
 
 

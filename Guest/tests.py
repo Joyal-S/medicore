@@ -161,3 +161,16 @@ class AuthenticationTests(TestCase):
         logout_response = self.client.get(reverse('User:ulogout'))
         self.assertRedirects(logout_response, reverse('Guest:login'))
         self.assertIsNone(self.client.session.get('uid'))
+
+    def test_registration_rejects_weak_password(self):
+        """Registration rejects passwords shorter than 8 characters."""
+        response = self.client.post(reverse('Guest:registration'), {
+            'name': 'Short Pass User',
+            'email': 'shortpass@example.com',
+            'contact': '9876543210',
+            'address': 'Test Address',
+            'place': self.place.id,
+            'password': 'short'  # only 5 characters
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(tbl_registration.objects.filter(registration_email='shortpass@example.com').exists())

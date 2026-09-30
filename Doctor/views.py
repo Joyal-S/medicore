@@ -1,9 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.db import transaction
 from Guest.models import tbl_doctor
 from User.models import tbl_request, tbl_prescription
-from Doctor.models import tbl_disease
-from Doctor.ml_service import predict_from_symptoms, FRONTEND_SYMPTOMS
+from .models import tbl_disease
+from .ml_service import predict_from_symptoms, FRONTEND_SYMPTOMS
 from mainproject.security import (
     doctor_required, hash_password, verify_and_upgrade_password, validate_password_strength
 )
@@ -84,9 +85,10 @@ def prescription(request, id):
             messages.error(request, "Please select a prescription file to upload.")
             return render(request, 'Doctor/Prescription.html', {'request': req})
 
-        req.request_status = 1
-        req.save()
-        tbl_prescription.objects.create(prescription_file=file, requestpres=req)
+        with transaction.atomic():
+            req.request_status = 1
+            req.save(update_fields=['request_status'])
+            tbl_prescription.objects.create(prescription_file=file, requestpres=req)
         messages.success(request, "Prescription uploaded successfully.")
         return redirect("Doctor:viewrequest")
     else:

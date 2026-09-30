@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from Admin.models import tbl_district, tbl_place, tbl_adminregistration
-from Guest.models import tbl_registration, tbl_doctor, tbl_shop
-from mainproject.security import hash_password, verify_and_upgrade_password
+from .models import tbl_registration, tbl_doctor, tbl_shop
+from mainproject.security import hash_password, verify_and_upgrade_password, validate_password_strength
 
 
 def login(request):
@@ -86,6 +86,11 @@ def registration(request):
             messages.error(request, "An account with this email address already exists.")
             return render(request, 'Guest/UserRegistration.html', {'district': districts})
 
+        is_valid_pwd, pwd_err = validate_password_strength(raw_password)
+        if not is_valid_pwd:
+            messages.error(request, pwd_err)
+            return render(request, 'Guest/UserRegistration.html', {'district': districts})
+
         place = get_object_or_404(tbl_place, id=place_id)
         hashed_password = hash_password(raw_password)
 
@@ -134,6 +139,11 @@ def doctor(request):
             messages.error(request, "A doctor with this email is already registered.")
             return render(request, 'Guest/Doctor.html', {'district': districts})
 
+        is_valid_pwd, pwd_err = validate_password_strength(raw_password)
+        if not is_valid_pwd:
+            messages.error(request, pwd_err)
+            return render(request, 'Guest/Doctor.html', {'district': districts})
+
         place = get_object_or_404(tbl_place, id=place_id)
         hashed_password = hash_password(raw_password)
 
@@ -172,6 +182,11 @@ def shop(request):
 
         if tbl_shop.objects.filter(shop_email=email).exists():
             messages.error(request, "A pharmacy with this email is already registered.")
+            return render(request, 'Guest/Shop.html', {'district': districts})
+
+        is_valid_pwd, pwd_err = validate_password_strength(raw_password)
+        if not is_valid_pwd:
+            messages.error(request, pwd_err)
             return render(request, 'Guest/Shop.html', {'district': districts})
 
         place = get_object_or_404(tbl_place, id=place_id)

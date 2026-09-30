@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django.contrib import messages
 from django.views.decorators.http import require_POST
-from Admin.models import tbl_district, tbl_adminregistration, tbl_categary, tbl_place, tbl_scategary
+from .models import tbl_district, tbl_adminregistration, tbl_categary, tbl_place, tbl_scategary
 from Guest.models import tbl_registration, tbl_doctor, tbl_shop
 from User.models import tbl_complaints
 from mainproject.security import (

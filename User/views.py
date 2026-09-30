@@ -1,16 +1,16 @@
 from decimal import Decimal
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, Avg, Q
 from django.db import transaction
 from django.views.decorators.http import require_POST
 from django.contrib import messages
 from Guest.models import tbl_registration, tbl_doctor, tbl_shop
-from User.models import (
+from Shop.models import tbl_category, tbl_medicine, tbl_stock
+from .models import (
     tbl_complaints, tbl_request, tbl_prescription,
     tbl_booking, tbl_cart, tbl_rating
 )
-from Shop.models import tbl_category, tbl_medicine, tbl_stock
 from mainproject.security import (
     user_required, hash_password, verify_and_upgrade_password, validate_password_strength
 )
@@ -99,21 +99,11 @@ def complaints(request):
 @user_required
 def viewdoctor(request):
     """Browse approved doctors along with their calculated average star ratings."""
-    doctors = tbl_doctor.objects.filter(doctor_status=1).select_related('place')
+    doctors = tbl_doctor.objects.filter(doctor_status=1).select_related('place').annotate(
+        avg_rating=Avg('ratings__rating_data')
+    )
     stars_range = [1, 2, 3, 4, 5]
-    avg_ratings = []
-
-    for doc in doctors:
-        rating_agg = tbl_rating.objects.filter(doctor=doc).aggregate(
-            total=Sum('rating_data'),
-            count=Count('id')
-        )
-        total = rating_agg['total'] or 0
-        count = rating_agg['count'] or 0
-        avg = round(total / count) if count > 0 else 0
-        avg_ratings.append(avg)
-
-    doctor_data = zip(doctors, avg_ratings)
+    doctor_data = [(doc, round(doc.avg_rating or 0)) for doc in doctors]
     return render(request, 'User/ViewDoctors.html', {'doctor': doctor_data, 'ar': stars_range})
 
 
@@ -180,9 +170,9 @@ def viewmedicine(request, id):
     search_query = request.POST.get("Search", "").strip() if request.method == "POST" else ""
 
     if search_query:
-        medicines = tbl_medicine.objects.filter(shop=shop, medicine_name__icontains=search_query)
+        medicines = tbl_medicine.objects.filter(shop=shop, medicine_name__icontains=search_query).select_related('category', 'shop')
     else:
-        medicines = tbl_medicine.objects.filter(shop=shop)
+        medicines = tbl_medicine.objects.filter(shop=shop).select_related('category', 'shop')
 
     return render(request, 'User/ViewMed.html', {
         'med': medicines,
@@ -197,14 +187,8 @@ def Addcart(request, mid):
     medicine = get_object_or_404(tbl_medicine, id=mid)
     user = get_object_or_404(tbl_registration, id=request.session["uid"])
 
-    # Stock validation
-    total_stock = tbl_stock.objects.filter(medicine=medicine).aggregate(total=Sum('stock_qty'))['total'] or 0
-    total_sold = tbl_cart.objects.filter(
-        medicine=medicine,
-        cart_status=1,
-        booking__booking_status__in=[2, 3, 4]
-    ).aggregate(total=Sum('cart_quantity'))['total'] or 0
-    available_stock = total_stock - total_sold
+    # Stock validation using centralized method
+    available_stock = medicine.get_available_stock()
 
     if available_stock <= 0:
         messages.error(request, f"Sorry, '{medicine.medicine_name}' is currently out of stock.")
@@ -254,14 +238,8 @@ def Mycart(request):
             requires_prescription = False
 
             for item in cart_items:
-                # Check current available stock
-                total_stock = tbl_stock.objects.filter(medicine=item.medicine).aggregate(total=Sum('stock_qty'))['total'] or 0
-                sold_qty = tbl_cart.objects.filter(
-                    medicine=item.medicine,
-                    cart_status=1,
-                    booking__booking_status__in=[2, 3, 4]
-                ).aggregate(total=Sum('cart_quantity'))['total'] or 0
-                available = total_stock - sold_qty
+                # Check current available stock using model method
+                available = item.medicine.get_available_stock()
 
                 if item.cart_quantity > available:
                     messages.error(
@@ -296,13 +274,7 @@ def Mycart(request):
         if bookingdata:
             cart = tbl_cart.objects.filter(booking=bookingdata).select_related('medicine')
             for item in cart:
-                total_stock = tbl_stock.objects.filter(medicine=item.medicine_id).aggregate(total=Sum('stock_qty'))['total'] or 0
-                total_cart = tbl_cart.objects.filter(
-                    medicine=item.medicine_id,
-                    cart_status=1,
-                    booking__booking_status__in=[2, 3, 4]
-                ).aggregate(total=Sum('cart_quantity'))['total'] or 0
-                item.total_stock = max(0, total_stock - total_cart)
+                item.total_stock = item.medicine.get_available_stock()
             return render(request, "User/MyCart.html", {'cartdata': cart})
         else:
             return render(request, "User/MyCart.html", {'cartdata': []})
@@ -367,14 +339,8 @@ def CartQty(request):
     except ValueError:
         qty = 1
 
-    # Check stock
-    total_stock = tbl_stock.objects.filter(medicine=cartdata.medicine).aggregate(total=Sum('stock_qty'))['total'] or 0
-    sold_qty = tbl_cart.objects.filter(
-        medicine=cartdata.medicine,
-        cart_status=1,
-        booking__booking_status__in=[2, 3, 4]
-    ).aggregate(total=Sum('cart_quantity'))['total'] or 0
-    available = max(0, total_stock - sold_qty)
+    # Check stock using centralized method
+    available = cartdata.medicine.get_available_stock()
 
     if qty > available:
         qty = max(1, available)
@@ -438,11 +404,14 @@ def rating(request, mid):
     stars_array = [1, 2, 3, 4, 5]
 
     ratings_qs = tbl_rating.objects.filter(doctor=doctor).order_by('-datetime')
-    count = ratings_qs.count()
+    rating_stats = ratings_qs.aggregate(
+        total_reviews=Count('id'),
+        avg_rating=Avg('rating_data')
+    )
+    count = rating_stats['total_reviews'] or 0
 
     if count > 0:
-        total = ratings_qs.aggregate(total=Sum('rating_data'))['total'] or 0
-        avg = round(total / count)
+        avg = round(rating_stats['avg_rating'] or 0)
         return render(request, "User/Rating.html", {
             'mid': mid,
             'doctor': doctor,
@@ -492,29 +461,20 @@ def ajaxstar(request):
 
 @user_required
 def starrating(request):
-    """Return JSON statistics for a doctor's ratings."""
+    """Return JSON statistics for a doctor's ratings using database aggregation."""
     doctor_id = request.GET.get("pdt")
     if not doctor_id:
         return JsonResponse({"error": "Doctor ID required"}, status=400)
 
-    rates = tbl_rating.objects.filter(doctor_id=doctor_id)
-    ratecount = rates.count()
-
-    counts = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
-    for r in rates:
-        val = int(r.rating_data)
-        if val in counts:
-            counts[val] += 1
-
-    result = {
-        "five": counts[5],
-        "four": counts[4],
-        "three": counts[3],
-        "two": counts[2],
-        "one": counts[1],
-        "total_review": ratecount
-    }
-    return JsonResponse(result)
+    stats = tbl_rating.objects.filter(doctor_id=doctor_id).aggregate(
+        five=Count('id', filter=Q(rating_data=5)),
+        four=Count('id', filter=Q(rating_data=4)),
+        three=Count('id', filter=Q(rating_data=3)),
+        two=Count('id', filter=Q(rating_data=2)),
+        one=Count('id', filter=Q(rating_data=1)),
+        total_review=Count('id')
+    )
+    return JsonResponse(stats)
 
 
 def ulogout(request):

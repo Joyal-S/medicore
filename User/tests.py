@@ -226,3 +226,105 @@ class UserOrderAndSecurityTests(TestCase):
         })
         rating_obj = tbl_rating.objects.filter(doctor=self.doctor).latest('id')
         self.assertEqual(rating_obj.rating_data, 5)
+
+    def test_viewdoctor_annotated_query(self):
+        """viewdoctor correctly annotates average ratings in a single query."""
+        tbl_rating.objects.create(
+            doctor=self.doctor,
+            user=self.patient1,
+            user_name="Patient One",
+            user_review="Excellent",
+            rating_data=5
+        )
+        tbl_rating.objects.create(
+            doctor=self.doctor,
+            user=self.patient2,
+            user_name="Patient Two",
+            user_review="Good",
+            rating_data=3
+        )
+
+        session = self.client.session
+        session['uid'] = self.patient1.id
+        session['role'] = 'user'
+        session.save()
+
+        response = self.client.get(reverse('User:viewdoctor'))
+        self.assertEqual(response.status_code, 200)
+        doctor_data = response.context['doctor']
+        # Finds self.doctor and verifies average (5 + 3)/2 = 4
+        doc_entry = next((item for item in doctor_data if item[0].id == self.doctor.id), None)
+        self.assertIsNotNone(doc_entry)
+        self.assertEqual(doc_entry[1], 4)
+
+    def test_starrating_aggregation(self):
+        """starrating endpoint aggregates counts per rating in SQL."""
+        tbl_rating.objects.create(
+            doctor=self.doctor,
+            user=self.patient1,
+            user_name="Patient One",
+            user_review="Great",
+            rating_data=5
+        )
+        tbl_rating.objects.create(
+            doctor=self.doctor,
+            user=self.patient2,
+            user_name="Patient Two",
+            user_review="Okay",
+            rating_data=4
+        )
+
+        session = self.client.session
+        session['uid'] = self.patient1.id
+        session['role'] = 'user'
+        session.save()
+
+        response = self.client.get(reverse('User:starrating'), {'pdt': self.doctor.id})
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data['five'], 1)
+        self.assertEqual(data['four'], 1)
+        self.assertEqual(data['total_review'], 2)
+
+    def test_cart_unique_constraint(self):
+        """Database constraint prevents duplicate medicine in the same booking."""
+        from django.db import IntegrityError
+        booking = tbl_booking.objects.create(user=self.patient1, booking_status=0)
+        tbl_cart.objects.create(
+            booking=booking,
+            medicine=self.otc_med,
+            cart_quantity=1
+        )
+        with self.assertRaises(IntegrityError):
+            tbl_cart.objects.create(
+                booking=booking,
+                medicine=self.otc_med,
+                cart_quantity=2
+            )
+
+    def test_rating_check_constraint(self):
+        """Database constraint enforces rating_data between 1 and 5."""
+        from django.db import IntegrityError
+        with self.assertRaises(IntegrityError):
+            tbl_rating.objects.create(
+                doctor=self.doctor,
+                user=self.patient1,
+                user_name="Patient",
+                user_review="Invalid",
+                rating_data=10
+            )
+
+    def test_medicine_get_available_stock_method(self):
+        """tbl_medicine.get_available_stock accurately reflects stock and deductions."""
+        # Initial stock for self.otc_med is 10
+        self.assertEqual(self.otc_med.get_available_stock(), 10)
+
+        # Create paid order for 3 items
+        paid_booking = tbl_booking.objects.create(user=self.patient1, booking_status=2)
+        tbl_cart.objects.create(
+            booking=paid_booking,
+            medicine=self.otc_med,
+            cart_quantity=3,
+            cart_status=1
+        )
+        self.assertEqual(self.otc_med.get_available_stock(), 7)
