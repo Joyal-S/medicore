@@ -1,0 +1,145 @@
+{% extends 'User/Head.html' %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedSure::Doctor List</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        .text-warning {
+            color: orange;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 90%;
+            margin: 30px auto;
+            border-collapse: collapse;
+            background-color: #fff;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        table th,
+        table td {
+            padding: 15px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+
+        table th {
+            background-color: #4c61af;
+            color: white;
+            font-size: 18px;
+        }
+
+        table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        table tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        table td img {
+            width: 80px;
+            height: 80px;
+            border-radius: 5px;
+        }
+
+        .doctor-name {
+            color: #1E88E5;
+            font-weight: bold;
+        }
+
+        .doctor-place {
+            color: #0D47A1;
+        }
+
+        a.request-btn {
+            text-decoration: none;
+            padding: 10px 15px;
+            color: white;
+            background-color: #367ea5;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+            display: inline-block;
+        }
+
+        a.request-btn:hover {
+            background-color: #4575a0;
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            table {
+                width: 100%;
+            }
+
+            table th,
+            table td {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>Doctor List</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>SNO</th>
+                <th>Photo</th>
+                <th>License</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Contact</th>
+                <th>Place</th>
+                <th>Rating</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for i,j in doctor %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td><img src="{{ i.doctor_photo.url }}" alt="Doctor Photo"></td>
+                <td><img src="{{ i.doctor_licese.url }}" alt="License Photo"></td>
+                <td><span class="doctor-name">{{ i.doctor_name }}</span></td>
+                <td>{{ i.doctor_email }}</td>
+                <td>{{ i.doctor_contact }}</td>
+                <td><span class="doctor-place">{{ i.place.place_name }}</span></td>
+                <td>
+                    {% for k in ar %} {% if k <= j %} <i class="fa-solid fa-star text-warning"></i>
+                    {% else %}
+                    <i class="fa-solid fa-star star-light"></i>
+                    {% endif %} {% endfor %}
+                </td>
+                <td>
+                    <a href="{% url 'User:request' i.id %}" class="request-btn">Request</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+
+</html>
+{% endblock content %}

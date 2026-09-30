@@ -1,0 +1,170 @@
+{% extends 'Admin/Head.html' %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MedSure :: Place</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #f2f5f6, #f4f5f6);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .section {
+            max-width: 900px;
+            margin: 30px auto;
+            background-color: #ffffffdd;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .section h2 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        form {
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #34495e;
+        }
+
+        select, input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            margin-bottom: 20px;
+            font-size: 16px;
+            background-color: #f9f9f9;
+        }
+
+        select:focus, input:focus {
+            border-color: #3498db;
+            background: #fff;
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.4);
+            outline: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #2c3e50;
+            color: white;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease-in-out;
+        }
+
+        button:hover {
+            background-color: #1a252f;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        th {
+            background-color: #2c3e50;
+            color: white;
+            padding: 14px;
+            font-weight: bold;
+        }
+
+        td {
+            padding: 12px;
+            text-align: center;
+            color: #333;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f7f9fa;
+        }
+
+        tr:hover {
+            background-color: #ecf0f1;
+        }
+
+        a {
+            color: #007BFF;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+            color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+<div class="section">
+    <h2>Place Management</h2>
+    <form method="POST">
+        {% csrf_token %}
+        <label for="district">District</label>
+        <select name="sel_district" id="district" required>
+            <option value="">---- Select ----</option>
+            {% for i in district %}
+                <option {% if i.id == editplace.district.id %}selected{% endif %} value="{{ i.id }}">{{ i.district_name }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="place">Place Name</label>
+        <input type="text" id="place" name="place" value="{{ editplace.place_name }}" placeholder="Enter place name" required>
+
+        <button type="submit">Save Place</button>
+    </form>
+
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>District</th>
+                <th>Place</th>
+                <th colspan="2">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for i in place %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ i.district.district_name }}</td>
+                <td>{{ i.place_name }}</td>
+                <td><a href="{% url 'Admin:editplace' i.id %}">Edit</a></td>
+                <td><a href="{% url 'Admin:deletplace' i.id %}">Delete</a></td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="text-align:center; font-style:italic; color: #777;">No places added yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>
+{% endblock %}

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedSure::Replay</title>
+</head>
+<body>
+    <form method="POST">
+        {% csrf_token %}
+        <table border="2" align="center">
+            <tr>
+                <td>Replay</td>
+                <td><textarea name="txtreplay" id="txtreplay"></textarea></td>
+            </tr>
+            <tr>
+                <td colspan="2" align="center"><input type="submit" value="Submit"></td>
+            </tr>
+        </table>
+    </form>
+    
+</body>
+</html> 

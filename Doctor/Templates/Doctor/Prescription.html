@@ -1,0 +1,74 @@
+{% extends 'Doctor/Head.html' %}
+{% block content %}
+
+<style>
+    /* Container styling */
+    .upload-container {
+        max-width: 450px;
+        margin: 50px auto;
+        padding: 25px;
+        background: linear-gradient(135deg, #65bbf5, #80c7e0);
+        border-radius: 12px;
+        box-shadow: 0px 5px 15px rgba(48, 245, 189, 0.2);
+        text-align: center;
+        color: white;
+    }
+
+    /* Title styling */
+    .upload-container h2 {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* File input styling */
+    .upload-container input[type="file"] {
+        width: 100%;
+        padding: 12px;
+        border: 2px dashed white;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        color: white;
+        cursor: pointer;
+        transition: background 0.3s, border-color 0.3s;
+    }
+
+    .upload-container input[type="file"]:hover {
+        background: rgba(173, 92, 92, 0.3);
+        border-color: #fff;
+    }
+
+    /* Button styling */
+    .upload-container button {
+        display: block;
+        width: 100%;
+        margin-top: 20px;
+        background-color: #476e95;
+        color: white;
+        padding: 12px;
+        font-size: 16px;
+        font-weight: bold;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+
+    .upload-container button:hover {
+        background-color: #1a252f;
+    }
+</style>
+
+<div class="upload-container">
+    <h2>Upload Prescription</h2>
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="file" id="file" name="file" required>
+        <button type="submit">Submit</button>
+    </form>
+</div>
+
+{% endblock content %}
+

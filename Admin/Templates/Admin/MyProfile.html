@@ -1,0 +1,61 @@
+{% extends 'Admin/Head.html' %}
+{% block content %}
+
+<div class="page-wrapper">
+    <div class="container-fluid">
+        <!-- Page Title -->
+        <div class="row">
+            <div class="col-12 mb-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h3 class="card-title mb-0">Admin Profile</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Profile Card -->
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white text-center">
+                        <h5 class="mb-0">Profile Details</h5>
+                    </div>
+                    <div class="card-body text-center">
+
+                        <!-- Profile Picture -->
+                        <div class="mb-3">
+                            <img src="{{ admin.registration_photo.url }}" alt="Admin Photo" class="rounded-circle border" width="120" height="120">
+                        </div>
+
+                        <!-- Profile Info -->
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <tbody>
+                                    <tr>
+                                        <th class="bg-light text-start">Name</th>
+                                        <td class="text-start">{{ admin.registration_name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="bg-light text-start">Email</th>
+                                        <td class="text-start">{{ admin.registration_email }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-center mt-3">
+                            <a href="{% url 'Admin:editprofile' %}" class="btn btn-outline-primary me-2">Edit Profile</a>
+                            <a href="{% url 'Admin:changepass' %}" class="btn btn-outline-secondary">Change Password</a>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,35 @@
+from django.urls import path,include
+from Admin import views
+app_name="Admin"
+urlpatterns = [
+    path('district/',views.district,name='district'),
+    path('registration/',views.registration,name='registration'),
+    path('categary/',views.categary,name='categary'),
+    path('place/',views.place,name='place'),
+    path('scategary/',views.scategary,name='scategary'),
+    path('home/',views.home,name='home'),
+    path('deletdistrict/<int:deletdistrict>',views.deletdistrict,name='deletdistrict'),
+    path('deletregister/<int:deletregister>',views.deletregister,name='deletregister'),
+    path('deletcategary/<int:deletcategary>',views.deletcategary,name='deletcategary'),
+    path('editdistrict/<int:editdistrict>',views.editdistrict,name='editdistrict'),
+    path('editcategary/<int:editcategary>',views.editcategary,name='editcategary'),
+    path('editregister/<int:editregister>',views.editregister,name='editregister'),
+    path('deletplace/<int:deletplace>',views.deletplace,name='deletplace'),
+    path('deletsub/<int:deletsub>',views.deletsub,name='deletsub'),  
+    path('editplace/<int:editplace>',views.editplace,name='editplace'),
+    path('edisubcategary/<int:edisubcategary>',views.edisubcategary,name='edisubcategary'),
+    path('userlist/',views.userlist,name='userlist'),
+    path('shoplist/',views.shoplist,name='shoplist'),
+    path('reject/<int:id>',views.reject,name='reject'),
+    path('accept/<int:id>',views.accept,name='accept'),
+    path('doctorlist/',views.doctorlist,name='doctorlist'),
+    path('rejectd/<int:id>',views.rejectd,name='rejectd'),
+    path('acceptd/<int:id>',views.acceptd,name='acceptd'),
+    path('usercomplaint/',views.usercomplaint,name='usercomplaint'),
+    path('replaycomplaint/<int:id>',views.replaycomplaint,name='replaycomplaint'),   
+    path('myprofile/',views.myprofile,name='myprofile'),
+    path('editprofile/',views.editprofile,name='editprofile'),
+    path('changepass/',views.changepass,name='changepass'),
+    path('alogout/',views.alogout,name='alogout'),
+
+]

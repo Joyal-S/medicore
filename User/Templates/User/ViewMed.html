@@ -1,0 +1,136 @@
+{% extends 'User/Head.html' %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedSure::Shop List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin: 20px 0;
+        }
+
+        table {
+            width: 90%;
+            margin: 30px auto;
+            border-collapse: collapse;
+            background-color: #fff;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        table th,
+        table td {
+            padding: 15px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+
+        table th {
+            background-color: #4c77af;
+            color: white;
+            font-size: 18px;
+        }
+
+        table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        table tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        table td img {
+            width: 100px;
+            height: 100px;
+            border-radius: 5px;
+        }
+
+        a {
+            text-decoration: none;
+            padding: 10px 15px;
+            color: white;
+            background-color: #3d7cb0;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+            margin: 5px;
+        }
+
+        a:hover {
+            background-color: #4580a0;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-top: 40px;
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            table {
+                width: 100%;
+            }
+
+            table th, table td {
+                padding: 10px;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+   <form action="" method="post">
+    {% csrf_token %}
+    <table>
+        <tr>
+            <td>Search: <input type="text" name="Search" id="Search"></td>
+            <td><input type="submit" value="Search"></td>
+            
+        </tr>
+    </table>
+   </form>
+    <h1>Medicine List</h1>
+    <table>
+        <tr>
+            <th>Sl.No</th>
+            <th>Photo</th>
+            <th>Name</th>
+            <th>Details</th>
+            <th>categary</th>
+            <th>Action</th>
+        </tr>
+        {% for i in med %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{% if i.medicine_photo %}<img src="{{ i.medicine_photo.url }}" alt="Medicine Photo">{% else %}<span>No Image</span>{% endif %}</td>
+            <td>{{ i.medicine_name }}</td>
+            <td>{{ i.medicine_details }}</td>
+            <td>{{ i.category.category_name}}</td>
+            <td>
+                <a href="{% url 'User:Addcart' i.id %}" class="request-btn">Addcart</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {%if msg %} 
+    <script>
+     alert("{{msg}}")
+    </script>
+    {% endif %}
+    
+</body>
+
+</html>
+{% endblock content %}

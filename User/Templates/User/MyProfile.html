@@ -1,0 +1,137 @@
+{% extends 'User/Head.html' %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedSure::User Profile</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #74ebd5, #9face6);
+            color: #333;
+        }
+        .profile-container {
+            width: 350px;
+            margin: 50px auto;
+            background: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        .profile-container h1 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: bold;
+            color: #4A90E2;
+        }
+        .profile-container h2 {
+            margin: 10px 0;
+            font-size: 20px;
+            color: #7f8c8d;
+        }
+        .profile-pic {
+            width: 120px;
+            height: 120px;
+            margin: 20px auto;
+            background-color: #f0f0f0;
+            border: 2px solid #ccc;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .profile-pic img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 16px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #f4f4f4;
+            font-weight: bold;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        .actions {
+            margin-top: 20px;
+        }
+        .actions a {
+            margin: 0 10px;
+            text-decoration: none;
+            color: #007BFF;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+        .actions a:hover {
+            color: #0056b3;
+        }
+        nav ul {
+            list-style: none;
+            padding: 0;
+        }
+        nav ul li {
+            display: inline;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="profile-container">
+        <h1>User</h1>
+        <h2>Edit Profile</h2>
+        <div class="profile-pic">
+           <img src="{{user.registration_photo.url}}" alt="Profile Picture">  
+        </div>
+        <table>
+            <tr>
+                <th>Name</th>
+                <td>{{user.registration_name}}</td>
+            </tr>
+            <tr>
+                <th>Email</th>
+                <td>{{user.registration_email}}</td>
+            </tr>
+            <tr>
+                <th>Contact</th>
+                <td>{{user.registration_contact}}</td>
+            </tr>
+            <tr>
+                <th>Address</th>
+                <td>{{user.registration_address}}</td>
+            </tr>
+            <tr>
+                <th>District</th>
+                <td>{{user.place.district.district_name}}</td>
+            </tr>
+            <tr>
+                <th>place</th>
+                <td>{{user.place.place_name}}</td>
+            </tr>
+        </table>
+        <nav>
+            <ul>
+                <li><a href="{% url 'User:editprofile' %}">Edit</a></li>
+                <li><a href="{% url 'User:changepass' %}">Change Password</a></li>
+            </ul>
+        </nav> 
+    </div>
+
+</body>
+</html>
+{% endblock content %}
