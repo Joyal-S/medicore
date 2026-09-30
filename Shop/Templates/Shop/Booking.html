@@ -1,0 +1,118 @@
+{% extends 'Shop/Head.html' %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedSure::User Bookings</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 90%;
+            margin: auto;
+            border-collapse: collapse;
+            background: #fff;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        img {
+            border-radius: 8px;
+        }
+        .no-orders {
+            text-align: center;
+            color: #e74c3c;
+            font-size: 18px;
+            padding: 20px;
+        }
+        .status-btn {
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            color: white;
+            margin: 5px;
+            display: inline-block;
+        }
+        .packing-btn {
+            background-color: #f39c12;
+        }
+        .delivery-btn {
+            background-color: #27ae60;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>User Bookings</h1>
+
+    <table>
+        <tr>
+            <th>Sl.No</th>
+            <th>Photo</th>
+            <th>Medicine Name</th>
+            <th>Amount</th>
+            <th>User</th>
+            <th>Address</th>
+            <th>Date of Order</th>
+            <th>Action</th>
+        </tr>
+        {% for order in booking %}
+            {% for cart_item in order.tbl_cart_set.all %}
+            <tr>
+                <td>{{ forloop.parentloop.counter }}</td>
+                <td><img src="{{ cart_item.medicine.medicine_photo.url }}" alt="Medicine Photo" width="80"></td>
+                <td>{{ cart_item.medicine.medicine_name }}</td>
+                <td><strong>₹{{ order.booking_amount }}</strong></td>
+                <td>{{ order.user.registration_name }}</td>
+                <td>{{ order.user.registration_address }}</td>
+                <td>{{ order.booking_date|date:"d M Y, h:i A" }}</td>
+                <td>
+                    {% if order.booking_status == 2 %}
+                        <form method="POST" action="{% url 'Shop:packing' order.id %}" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="status-btn packing-btn" style="border:none;cursor:pointer;">Packing</button>
+                        </form>
+                    {% elif order.booking_status == 3 %}
+                        <form method="POST" action="{% url 'Shop:delivery' order.id %}" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="status-btn delivery-btn" style="border:none;cursor:pointer;">Deliver</button>
+                        </form>
+                    {% else %}
+                        <span>Completed</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        {% empty %}
+        <tr>
+            <td colspan="8" class="no-orders">No orders found</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+</body>
+</html>
+{% endblock content %}

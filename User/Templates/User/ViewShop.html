@@ -1,0 +1,116 @@
+{% extends 'User/Head.html' %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedSure::Shop List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin: 20px 0;
+        }
+
+        table {
+            width: 90%;
+            margin: 30px auto;
+            border-collapse: collapse;
+            background-color: #fff;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        table th,
+        table td {
+            padding: 15px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+
+        table th {
+            background-color: #2a7e95;
+            color: white;
+            font-size: 18px;
+        }
+
+        table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        table tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        table td img {
+            width: 100px;
+            height: 100px;
+            border-radius: 5px;
+        }
+
+        a.request-btn {
+            text-decoration: none;
+            padding: 10px 15px;
+            color: white;
+            background-color: #5ca9e4;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+            display: inline-block;
+        }
+
+        a.request-btn:hover {
+            background-color: #35678e;
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            table {
+                width: 100%;
+            }
+
+            table th,
+            table td {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Shop List</h1>
+    <table>
+        <tr>
+            <th>S. No</th>
+            <th>Photo</th>
+            <th>Name</th>
+            <th>Contact</th>
+            <th>Address</th>
+            <th>Action</th>
+        </tr>
+        {% for i in shop %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{% if i.shop_photo %}<img src="{{ i.shop_photo.url }}" alt="Shop Photo">{% else %}<span>No Image</span>{% endif %}</td>
+            <td>{{ i.shop_name }}</td>
+            <td>{{ i.shop_contact }}</td>
+            <td>{{ i.shop_address }}</td>
+            <td>
+                <a href="{% url 'User:viewmedicine' i.id %}" class="request-btn">View Medicine</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+</body>
+
+</html>
+{% endblock content %}

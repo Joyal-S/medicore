@@ -1,0 +1,174 @@
+{% extends 'Admin/Head.html' %}
+{% block content %}
+
+<div class="page-wrapper">
+    <div class="container-fluid">
+        <!-- Page Title -->
+        <div class="row">
+            <div class="col-12 mb-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h3 class="card-title mb-0">Doctors List</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section: Pending Doctors -->
+        <div class="row">
+            <div class="col-12 mb-4">
+                <div class="card">
+                    <div class="card-header bg-warning text-white text-center">
+                        <h5 class="mb-0">Pending Doctors</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-bordered text-center align-middle">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>S.No</th>
+                                        <th>Photo</th>
+                                        <th>License</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Contact</th>
+                                        <th>Place</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for i in doctor %}
+                                    <tr>
+                                        <td>{{ forloop.counter }}</td>
+                                        <td><img src="{{ i.doctor_photo.url }}" width="70" height="70" class="rounded border" alt="Doctor Photo"></td>
+                                        <td><img src="{{ i.doctor_licese.url }}" width="70" height="70" class="rounded border" alt="Doctor License"></td>
+                                        <td>{{ i.doctor_name }}</td>
+                                        <td>{{ i.doctor_email }}</td>
+                                        <td>{{ i.doctor_contact }}</td>
+                                        <td>{{ i.place.place_name }}</td>
+                                        <td>
+                                            <form method="POST" action="{% url 'Admin:acceptd' i.id %}" style="display:inline;">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-success btn-sm mb-1">Accept</button>
+                                            </form>
+                                            <form method="POST" action="{% url 'Admin:rejectd' i.id %}" style="display:inline;">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-danger btn-sm mb-1">Reject</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr><td colspan="8">No pending doctors.</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section: Accepted Doctors -->
+        <div class="row">
+            <div class="col-12 mb-4">
+                <div class="card">
+                    <div class="card-header bg-success text-white text-center">
+                        <h5 class="mb-0">Accepted Doctors</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-bordered text-center align-middle">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>S.No</th>
+                                        <th>Photo</th>
+                                        <th>License</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Contact</th>
+                                        <th>Place</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for i in acceptd %}
+                                    <tr>
+                                        <td>{{ forloop.counter }}</td>
+                                        <td><img src="{{ i.doctor_photo.url }}" width="70" height="70" class="rounded border" alt="Doctor Photo"></td>
+                                        <td><img src="{{ i.doctor_licese.url }}" width="70" height="70" class="rounded border" alt="Doctor License"></td>
+                                        <td>{{ i.doctor_name }}</td>
+                                        <td>{{ i.doctor_email }}</td>
+                                        <td>{{ i.doctor_contact }}</td>
+                                        <td>{{ i.place.place_name }}</td>
+                                        <td>
+                                            <form method="POST" action="{% url 'Admin:rejectd' i.id %}" style="display:inline;">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr><td colspan="8">No accepted doctors.</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section: Rejected Doctors -->
+        <div class="row">
+            <div class="col-12 mb-4">
+                <div class="card">
+                    <div class="card-header bg-danger text-white text-center">
+                        <h5 class="mb-0">Rejected Doctors</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-bordered text-center align-middle">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>S.No</th>
+                                        <th>Photo</th>
+                                        <th>License</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Contact</th>
+                                        <th>Place</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for i in rejectd %}
+                                    <tr>
+                                        <td>{{ forloop.counter }}</td>
+                                        <td><img src="{{ i.doctor_photo.url }}" width="70" height="70" class="rounded border" alt="Doctor Photo"></td>
+                                        <td><img src="{{ i.doctor_licese.url }}" width="70" height="70" class="rounded border" alt="Doctor License"></td>
+                                        <td>{{ i.doctor_name }}</td>
+                                        <td>{{ i.doctor_email }}</td>
+                                        <td>{{ i.doctor_contact }}</td>
+                                        <td>{{ i.place.place_name }}</td>
+                                        <td>
+                                            <form method="POST" action="{% url 'Admin:acceptd' i.id %}" style="display:inline;">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-success btn-sm">Accept</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr><td colspan="8">No rejected doctors.</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

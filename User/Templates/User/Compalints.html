@@ -1,0 +1,123 @@
+{% extends 'User/Head.html' %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedSure::UserComplaints</title>
+    <style>
+        /* Centering the form without affecting the overall layout */
+        .complaint-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 80vh;
+            padding: 30px 10px;
+        }
+    
+        /* Complaint box styling */
+        .complaint-container {
+            max-width: 600px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            border-top: 5px solid #3498db;
+        }
+    
+        .complaint-container h2 {
+            text-align: center;
+            color: #2c3e50;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+    
+        /* Table for structured input fields */
+        .complaint-form table {
+            width: 100%;
+        }
+    
+        .complaint-form td {
+            padding: 10px;
+            font-size: 16px;
+        }
+    
+        /* Input fields */
+        .complaint-form input[type="text"],
+        .complaint-form textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+    
+        .complaint-form textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+    
+        /* Buttons */
+        .complaint-form input[type="submit"],
+        .complaint-form input[type="reset"] {
+            width: 48%;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+    
+        .complaint-form input[type="submit"]:hover {
+            background-color: #2980b9;
+        }
+    
+        .complaint-form input[type="reset"] {
+            background-color: #e74c3c;
+        }
+    
+        .complaint-form input[type="reset"]:hover {
+            background-color: #c0392b;
+        }
+    
+        /* Flexbox for buttons */
+        .form-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+    
+    </style>
+    
+    <!-- Complaint Form Section -->
+    <div class="complaint-section">
+        <div class="complaint-container">
+            <h2>Submit a Complaint</h2>
+            <form method="POST" class="complaint-form">
+                {% csrf_token %}
+                <table>
+                    <tr>
+                        <td><label for="subject"><b>Subject:</b></label></td>
+                        <td><input type="text" id="subject" name="subject" placeholder="Enter the subject" required></td>
+                    </tr>
+                    <tr>
+                        <td><label for="complaint"><b>Complaint:</b></label></td>
+                        <td><textarea id="complaint" name="complaint" placeholder="Describe your complaint" required></textarea></td>
+                    </tr>
+                </table>
+                <div class="form-actions">
+                    <input type="submit" value="SUBMIT">
+                    <input type="reset" value="CANCEL">
+                </div>
+            </form>
+        </div>
+    </div>
+    
+        {% endblock content %}

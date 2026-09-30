@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environments
+venv/
+env/
+MainEnv/
+ENV/
+env.bak/
+venv.bak/
+
+# Environment Variables
+.env
+
+# Database
+*.sqlite3-journal
+db.sqlite3.backup
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Static and media collections
+staticfiles/

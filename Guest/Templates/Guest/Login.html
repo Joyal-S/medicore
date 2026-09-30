@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MedSure :: Login</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Arial', sans-serif;
+    }
+
+    /* Background Video Styling */
+    .background-video {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: brightness(0.4); /* Darker for better contrast */
+      z-index: -1;
+    }
+
+    /* Layout */
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: row;
+      gap: 50px;
+      padding: 20px;
+    }
+
+    /* ECG Monitor */
+    .ecg-container {
+      width: 320px;
+      height: 60px;
+      overflow: hidden;
+      position: relative;
+      margin: 0 auto 20px auto;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 5px;
+    }
+
+    /* ECG Line */
+    .ecg-svg {
+      width: 200%;
+      height: 50px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      animation: heartbeatMove 2s linear infinite;
+    }
+
+    @keyframes heartbeatMove {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+
+    /* Login Box with Pharmacy Image Background */
+    .login-container {
+      position: relative;
+      background-image: url("https://images.unsplash.com/photo-1603555501671-8f96b3fce8b5?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTR8fHBoYXJtYWN5fGVufDB8fDB8fHww");
+      background-size: cover;
+      background-position: center;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      width: 350px;
+      text-align: center;
+      color: white;
+      overflow: hidden;
+    }
+
+    /* Overlay for readability */
+    .login-container::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, rgba(13, 13, 13, 0.7), rgba(27, 94, 32, 0.7));
+      z-index: 0;
+    }
+
+    /* Ensure inner elements are above the overlay */
+    .login-container * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .login-container h1 {
+      color: #4CAF50;
+      font-size: 22px;
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+      text-align: left;
+    }
+
+    label {
+      font-weight: bold;
+      color: #ccc;
+      display: block;
+      font-size: 14px;
+      margin-bottom: 5px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #4CAF50;
+      border-radius: 6px;
+      font-size: 14px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+    }
+
+    input::placeholder {
+      color: #bbb;
+    }
+
+    .login-btn {
+      width: 100%;
+      padding: 12px;
+      background: #4CAF50;
+      border: none;
+      color: #fff;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: background 0.3s ease-in-out;
+    }
+
+    .login-btn:hover {
+      background: #388E3C;
+    }
+
+    .forgot-password {
+      display: block;
+      margin-top: 10px;
+      font-size: 14px;
+      color: #4CAF50;
+      text-decoration: none;
+    }
+
+    .forgot-password:hover {
+      text-decoration: underline;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+        text-align: center;
+      }
+      .login-container {
+        width: 90%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background Video -->
+  <video autoplay loop muted class="background-video">
+    <source src="https://media.istockphoto.com/id/1500469862/video/4k-dna-background.mp4?s=mp4-640x640-is&k=20&c=lO-putHHss_brKVq68Mj6psb96xepp90IX1-1dPlO0k=" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+
+  <div class="login-section">
+    <!-- ECG Monitor -->
+    <div class="ecg-container">
+      <svg class="ecg-svg" viewBox="0 0 1000 50">
+        <polyline points="0,25 50,25 70,15 90,25 110,5 130,45 150,25 170,25 190,35 210,25 
+                           250,25 270,15 290,25 310,5 330,45 350,25 370,25 390,35 410,25 
+                           450,25 470,15 490,25 510,5 530,45 550,25 570,25 590,35 610,25 
+                           650,25 670,15 690,25 710,5 730,45 750,25 770,25 790,35 810,25 
+                           850,25 870,15 890,25 910,5 930,45 950,25 970,25 990,35 1000,25"
+                  stroke="#4CAF50" fill="none" stroke-width="2"/>
+      </svg>
+    </div>
+
+    <!-- Login Box with Pharmacy Image as Background -->
+    <div class="login-container">
+      <h1>MedSure</h1>
+
+      {% if msg %}
+      <div style="background: rgba(255,0,0,0.3); border: 1px solid #ff4d4d; border-radius: 6px; padding: 10px; margin-bottom: 15px; color: #ffcccc; font-size: 14px;">
+        {{ msg }}
+      </div>
+      {% endif %}
+      {% if messages %}
+        {% for message in messages %}
+          <div style="background: rgba(255,0,0,0.3); border: 1px solid #ff4d4d; border-radius: 6px; padding: 10px; margin-bottom: 15px; color: #ffcccc; font-size: 14px;">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+
+      <form method="POST">
+        {% csrf_token %}
+
+        <div class="form-group">
+          <label for="email">Email Address:</label>
+          <input type="email" id="email" name="email" placeholder="Enter your email" required>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password:</label>
+          <input type="password" id="password" name="password" placeholder="Enter your password" required>
+        </div>
+
+        <button type="submit" class="login-btn">Login</button>
+
+        <a href="{% url 'Guest:index' %}" class="forgot-password">Sign In</a>
+      </form>
+    </div>
+  </div>
+
+</body>
+</html>

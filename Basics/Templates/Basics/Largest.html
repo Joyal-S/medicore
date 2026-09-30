@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <form method="post">
+        {%csrf_token%}
+        <table border="1" align="center"><tr>
+            <td>
+                Number 1
+            </td>
+            <td>
+                <input type="text" name="no1"/> 
+            </td>
+    
+        </tr>
+        <tr>
+            <td>
+                Number 2
+            </td>
+            <td>
+                <input type="text" name="no2"/> 
+            </td>
+        </tr>
+        <tr>
+           <td colspan="2" align="center"><input type="submit" name="btn" value="check"/></td>
+        </tr>
+        <tr>
+            <td>
+                result
+            </td>
+            <td>
+                {{result}} 
+            </td>
+        </tr>
+    </table>
+    </form> 
+</body>
+</html>

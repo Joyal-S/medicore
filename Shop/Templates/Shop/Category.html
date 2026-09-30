@@ -1,0 +1,71 @@
+{% extends 'Shop/Head.html' %}
+{% block content %}
+
+<style>
+    /* Container Styling */
+    .container {
+        background: linear-gradient(135deg, #3db68c, #4f96cd);
+        border-radius: 12px;
+        box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+        text-align: center;
+        color: white;
+    }
+
+    /* Form Title */
+    .container h2 {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 15px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* Input Field */
+    .container input {
+        width: 100%;
+        padding: 12px;
+        margin-top: 10px;
+        border-radius: 6px;
+        border: none;
+        outline: none;
+        font-size: 16px;
+        background: rgba(255, 255, 255, 0.9);
+        transition: 0.3s ease-in-out;
+        text-align: center;
+    }
+
+    .container input:focus {
+        background: white;
+        box-shadow: 0px 0px 8px rgba(255, 255, 255, 0.5);
+    }
+
+    /* Button Styling */
+    .container button {
+        margin-top: 15px;
+        padding: 12px 20px;
+        font-size: 16px;
+        font-weight: bold;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        background-color: #5db080;
+        color: white;
+        transition: background 0.3s ease-in-out;
+    }
+
+    .container button:hover {
+        background-color: #1c9230;
+    }
+
+</style>
+
+<div class="container">
+    <h2>Enter Category</h2>
+    <form method="POST">
+        {% csrf_token %}
+        <input type="text" name="category" placeholder="Enter category name" required>
+        <button type="submit">Submit</button>
+    </form>
+</div>
+
+{% endblock content %}

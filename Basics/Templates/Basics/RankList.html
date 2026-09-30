@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <form method="post">
+        {%csrf_token%}
+        <table border="2">
+            <tr>
+                <th>Name</th>
+                <td><input type="text" name="txtname" id="txtname"></td>
+            </tr>
+            <tr>
+                <th>Gender</th>
+                <td>
+                    <input type="radio" name="radio" id="male" value="Male"> Male
+                    <input type="radio" name="radio" id="female" value="Female"> Female
+                </td>
+            </tr>
+            <tr>
+                <th>Department</th>
+                <td>
+                    <select name="seldept">
+                        <option>Computer Science</option>
+                        <option>Commerce</option>
+                        <option>Actuarial Science</option>
+                        <option>Chemistry</option>
+                        <option>Physics</option>
+                        <option>Animation</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <th>Mark 1</th>
+                <td><input type="text" name="mark1"></td>
+            </tr>
+            <tr>
+                <th>Mark 2</th>
+                <td><input type="text" name="mark2"></td>
+            </tr>
+            <tr>
+                <th>Mark 3</th>
+                <td><input type="text" name="mark3"></td>
+            </tr>
+            <tr>
+                <td colspan="2" style="text-align: center;">
+                    <button type="submit">Submit</button>
+                    <button type="reset">Cancel</button>
+                </td>
+            </tr>
+        </table>
+
+    
+    <h2 style="text-align: center;">Result</h2>
+    <table border="2" align="center">
+            <tr>
+                <th>Name</th>
+                <th>Gender</th>
+                <th>Department</th>
+                <th>Total</th>
+                <th>Percentage</th>
+                <th>Grade</th>
+            </tr>
+            <tr>
+                <td>{{ name }}</td>
+                <td>{{ gender }}</td>
+                <td>{{ department }}</td>
+                <td>{{ total }}</td>
+                <td>{{ percentage }}</td>
+                <td>{{ grade }}</td>
+            </tr>
+    </table>
+    
+</form>
+</body>
+</html>

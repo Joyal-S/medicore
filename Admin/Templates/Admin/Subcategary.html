@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedSure::SubCategory</title>
+</head>
+<body>
+    <form method="POST">
+     {% csrf_token %}
+       <table border="1" align="center">
+        <tr>
+            <td>
+                Categary
+            </td>
+            <td>
+            <select name="sel_categary">
+            <option>----select-----</option> 
+            {% for i in categary %}
+            <option {%if i.id == dis.categary.id %}selected{% endif %} value="{{i.id}}">{{i.categary_name}}</option>
+            {% endfor %}
+        </select>
+          </td>
+        </tr> 
+        <tr>
+            <th>Sub Name</th>
+            <td><input type="text" id="name" name="name" value="{{dis.scategary_name}}"></td>
+        </tr>
+        <tr>
+            <td colspan="2" align="center"><button type="submit" >Add Sub</button></td>
+        </tr>
+       </table>
+       <table border="1" align="center">
+        <tr>
+            <td>#</td>
+            <td>Categary</td>
+            <td>sSub Categary</td>
+            <td>Action</td>
+        </tr>
+        {% for i in scategary %}
+        <tr>
+            <td>{{forloop.counter}}</td>
+            <td>{{i.categary.categary_name}}</td>
+            <td>{{i.scategary_name}}</td>
+            <td><a href="{% url 'Admin:deletsub' i.id %}"> delete</a></td>
+            <td><a href="{% url 'Admin:edisubcategary' i.id %}">Edit</a></td>
+
+
+
+        </tr>
+        {% endfor %}
+    </table>   
+ </form>
+</body>
+</html>

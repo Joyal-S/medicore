@@ -1,0 +1,68 @@
+{% extends 'Admin/Head.html' %}
+{% block content %}
+
+<div class="page-wrapper">
+    <div class="container-fluid">
+        <!-- Page Title -->
+        <div class="row">
+            <div class="col-12 mb-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h3 class="card-title mb-0">User List</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- User List Table -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-bordered">
+                                <thead class="thead-dark text-center">
+                                    <tr>
+                                        <th>S.No</th>
+                                        <th>Photo</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Contact</th>
+                                        <th>Address</th>
+                                        <th>Place</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for i in user %}
+                                    <tr class="text-center align-middle">
+                                        <td>{{ forloop.counter }}</td>
+                                        <td>
+                                            {% if i.registration_photo %}
+                                                <img src="{{ i.registration_photo.url }}" alt="User Photo" width="80" height="80" class="rounded-circle border">
+                                            {% else %}
+                                                <span class="text-muted">No Photo</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ i.registration_name }}</td>
+                                        <td>{{ i.registration_email }}</td>
+                                        <td>{{ i.registration_contact }}</td>
+                                        <td>{{ i.registration_address }}</td>
+                                        <td>{{ i.place.place_name }}</td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted">No users found.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedSure::Category</title>
+</head>
+<body>
+    <form method="POST">
+     {% csrf_token %}
+       <table border="1" align="center">
+        <tr>
+            <th>Category Name</th>
+            <td><input type="text" id="Input" name="Input" value="{{dis.categary_name}}"></td>
+        </tr>
+        <tr>
+            <td colspan="2" align="center"><button type="submit" >Add categary</button></td>
+        </tr>
+       </table>
+       <table border="1" align="center">
+       <tr>
+            <td>#</td>
+            <td>categary</td>
+            <td>action</td>
+        </tr>
+        {% for i in categary %}
+        <tr>
+            <td>{{forloop.counter}}</td>
+            <td>{{i.categary_name}}</td>
+            <td><a href="{% url 'Admin:deletcategary' i.id %}"> delete</a></td>
+            <td><a href="{% url 'Admin:editcategary' i.id %}"> edit</a></td>
+
+
+        </tr>
+        {% endfor %}
+       </table>
+   
+ </form>
+</body>
+</html>
