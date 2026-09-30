@@ -471,15 +471,18 @@
          $(".qty").change(function () {
              var qid = $(this).val();
              var cid = $(this).attr('alt');
-             //alert(cid);
-             //alert(cid);
              var ur = $("#Form").attr("data-quantity-url");
              $.ajax({
+                 type: "POST",
                  url: ur,
-                 data: { QTY: qid, ALT: cid },
-                 
-                 
+                 data: {
+                     QTY: qid,
+                     ALT: cid,
+                     csrfmiddlewaretoken: '{{ csrf_token }}'
+                 },
+                 complete: function () {
+                     window.location = "{% url 'User:Mycart' %}";
+                 }
              });
-             window.location="{% url 'User:Mycart' %}";
          });
      </script>

@@ -12,7 +12,7 @@ from .models import (
     tbl_booking, tbl_cart, tbl_rating
 )
 from mainproject.security import (
-    user_required, hash_password, verify_and_upgrade_password, validate_password_strength
+    user_required, hash_password, verify_and_upgrade_password, validate_password_strength, validate_uploaded_file
 )
 
 
@@ -114,6 +114,11 @@ def request(request, id):
     doctor = get_object_or_404(tbl_doctor, id=id, doctor_status=1)
 
     if request.method == "POST":
+        # Check for existing active pending request with this doctor to prevent double-booking
+        if tbl_request.objects.filter(user=user, dotor=doctor, request_status=0).exists():
+            messages.warning(request, f"You already have a pending consultation request with Dr. {doctor.doctor_name}.")
+            return redirect("User:viewrequest")
+
         details = request.POST.get("details", "").strip()
         if details:
             tbl_request.objects.create(
@@ -288,6 +293,11 @@ def payment(request, id):
     user = get_object_or_404(tbl_registration, id=request.session["uid"])
     bookingdata = get_object_or_404(tbl_booking, id=id, user=user)
 
+    # Enforce order state machine: must be in checkout status (status=1)
+    if bookingdata.booking_status != 1:
+        messages.error(request, "This order cannot be paid in its current status.")
+        return redirect("User:myorder")
+
     # Check prescription requirement before allowing payment
     requires_rx = tbl_cart.objects.filter(booking=bookingdata, medicine__medicine_status=1).exists()
     if requires_rx and not bookingdata.prescription:
@@ -296,6 +306,17 @@ def payment(request, id):
 
     if request.method == "POST":
         with transaction.atomic():
+            # Re-verify stock for each item before confirming payment
+            for item in bookingdata.tbl_cart_set.select_related('medicine').all():
+                available = item.medicine.get_available_stock()
+                if item.cart_quantity > available:
+                    messages.error(
+                        request,
+                        f"Item '{item.medicine.medicine_name}' ran out of stock while completing payment. "
+                        f"Available: {available}, Requested: {item.cart_quantity}."
+                    )
+                    return redirect("User:Mycart")
+
             bookingdata.booking_status = 2  # Paid / Placed
             bookingdata.save(update_fields=['booking_status'])
         messages.success(request, "Payment successful! Your order has been placed.")
@@ -363,6 +384,11 @@ def addprescription(request, id):
             messages.error(request, "Please select a valid prescription file to upload.")
             return render(request, 'User/UploadPrescription.html')
 
+        is_valid, err = validate_uploaded_file(prescription_file, allow_pdf=True, max_size_mb=10)
+        if not is_valid:
+            messages.error(request, err)
+            return render(request, 'User/UploadPrescription.html')
+
         bookingdata.prescription = prescription_file
         bookingdata.save()
         messages.success(request, "Prescription uploaded successfully.")
@@ -426,17 +452,19 @@ def rating(request, mid):
 
 
 @user_required
+@require_POST
 def ajaxstar(request):
     """
-    Submit a doctor rating.
-    Enforces user authentication, binds to request.user, and validates rating bounds (1-5).
+    Submit a doctor rating via POST.
+    Enforces user authentication, binds to session user, validates rating (1-5),
+    and handles duplicate reviews gracefully by updating existing ratings.
     """
     user = get_object_or_404(tbl_registration, id=request.session["uid"])
     stars_array = [1, 2, 3, 4, 5]
 
-    raw_rating = request.POST.get('rating_data') or request.GET.get('rating_data', 5)
-    review_text = (request.POST.get('user_review') or request.GET.get('user_review', '')).strip()
-    doctor_id = request.POST.get('pid') or request.GET.get('pid')
+    raw_rating = request.POST.get('rating_data', 5)
+    review_text = request.POST.get('user_review', '').strip()
+    doctor_id = request.POST.get('pid')
 
     doctor = get_object_or_404(tbl_doctor, id=doctor_id)
 
@@ -446,13 +474,14 @@ def ajaxstar(request):
     except (ValueError, TypeError):
         rating_data = 5
 
-    # Always associate the authenticated user, ignoring client-supplied user_name
-    tbl_rating.objects.create(
+    tbl_rating.objects.update_or_create(
         user=user,
-        user_name=user.registration_name,
-        user_review=review_text,
-        rating_data=rating_data,
-        doctor=doctor
+        doctor=doctor,
+        defaults={
+            'user_name': user.registration_name,
+            'user_review': review_text,
+            'rating_data': rating_data,
+        }
     )
 
     ratings_list = tbl_rating.objects.filter(doctor=doctor).order_by('-datetime')

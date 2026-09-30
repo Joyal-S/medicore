@@ -6,7 +6,7 @@ from .models import tbl_district, tbl_adminregistration, tbl_categary, tbl_place
 from Guest.models import tbl_registration, tbl_doctor, tbl_shop
 from User.models import tbl_complaints
 from mainproject.security import (
-    admin_required, hash_password, verify_and_upgrade_password, validate_password_strength
+    admin_required, hash_password, verify_and_upgrade_password, validate_password_strength, validate_uploaded_file
 )
 
 
@@ -64,6 +64,12 @@ def registration(request):
         if not is_valid_pwd:
             messages.error(request, pwd_err)
             return render(request, 'Admin/AdminRegistration.html', {'registration': admins})
+
+        if photo:
+            is_valid, err = validate_uploaded_file(photo, allow_pdf=False, max_size_mb=5)
+            if not is_valid:
+                messages.error(request, err)
+                return render(request, 'Admin/AdminRegistration.html', {'registration': admins})
 
         hashed_password = hash_password(raw_password)
         tbl_adminregistration.objects.create(

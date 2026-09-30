@@ -2,7 +2,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from Admin.models import tbl_district, tbl_place, tbl_adminregistration
 from .models import tbl_registration, tbl_doctor, tbl_shop
-from mainproject.security import hash_password, verify_and_upgrade_password, validate_password_strength
+from mainproject.security import (
+    hash_password, verify_and_upgrade_password, validate_password_strength, validate_uploaded_file
+)
 
 
 def login(request):
@@ -91,6 +93,12 @@ def registration(request):
             messages.error(request, pwd_err)
             return render(request, 'Guest/UserRegistration.html', {'district': districts})
 
+        if photo:
+            is_valid_file, file_err = validate_uploaded_file(photo, allow_pdf=False, max_size_mb=5)
+            if not is_valid_file:
+                messages.error(request, file_err)
+                return render(request, 'Guest/UserRegistration.html', {'district': districts})
+
         place = get_object_or_404(tbl_place, id=place_id)
         hashed_password = hash_password(raw_password)
 
@@ -144,6 +152,18 @@ def doctor(request):
             messages.error(request, pwd_err)
             return render(request, 'Guest/Doctor.html', {'district': districts})
 
+        if photo:
+            is_valid_file, file_err = validate_uploaded_file(photo, allow_pdf=False, max_size_mb=5)
+            if not is_valid_file:
+                messages.error(request, file_err)
+                return render(request, 'Guest/Doctor.html', {'district': districts})
+
+        if license_file:
+            is_valid_file, file_err = validate_uploaded_file(license_file, allow_pdf=True, max_size_mb=10)
+            if not is_valid_file:
+                messages.error(request, file_err)
+                return render(request, 'Guest/Doctor.html', {'district': districts})
+
         place = get_object_or_404(tbl_place, id=place_id)
         hashed_password = hash_password(raw_password)
 
@@ -188,6 +208,18 @@ def shop(request):
         if not is_valid_pwd:
             messages.error(request, pwd_err)
             return render(request, 'Guest/Shop.html', {'district': districts})
+
+        if photo:
+            is_valid_file, file_err = validate_uploaded_file(photo, allow_pdf=False, max_size_mb=5)
+            if not is_valid_file:
+                messages.error(request, file_err)
+                return render(request, 'Guest/Shop.html', {'district': districts})
+
+        if license_file:
+            is_valid_file, file_err = validate_uploaded_file(license_file, allow_pdf=True, max_size_mb=10)
+            if not is_valid_file:
+                messages.error(request, file_err)
+                return render(request, 'Guest/Shop.html', {'district': districts})
 
         place = get_object_or_404(tbl_place, id=place_id)
         hashed_password = hash_password(raw_password)

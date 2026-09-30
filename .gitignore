@@ -33,3 +33,5 @@ htmlcov/
 
 # Static and media collections
 staticfiles/
+media/
+Assets/Files/

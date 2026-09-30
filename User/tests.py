@@ -1,10 +1,11 @@
 from decimal import Decimal
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, Client
 from django.urls import reverse
 from Admin.models import tbl_district, tbl_place
 from Guest.models import tbl_registration, tbl_doctor, tbl_shop
 from Shop.models import tbl_category, tbl_medicine, tbl_stock
-from User.models import tbl_booking, tbl_cart, tbl_complaints, tbl_rating
+from User.models import tbl_booking, tbl_cart, tbl_complaints, tbl_rating, tbl_request, tbl_prescription
 from mainproject.security import hash_password
 
 
@@ -328,3 +329,133 @@ class UserOrderAndSecurityTests(TestCase):
             cart_status=1
         )
         self.assertEqual(self.otc_med.get_available_stock(), 7)
+
+    def test_duplicate_consultation_request_prevented(self):
+        """Prevent patient from submitting duplicate active consultation requests to same doctor."""
+        session = self.client.session
+        session['uid'] = self.patient1.id
+        session['role'] = 'user'
+        session.save()
+
+        # First request succeeds
+        res1 = self.client.post(reverse('User:request', args=[self.doctor.id]), {
+            'details': 'First consultation note'
+        })
+        self.assertRedirects(res1, reverse('User:viewrequest'))
+        self.assertEqual(tbl_request.objects.filter(user=self.patient1, dotor=self.doctor, request_status=0).count(), 1)
+
+        # Second request while first is still pending is rejected
+        res2 = self.client.post(reverse('User:request', args=[self.doctor.id]), {
+            'details': 'Second duplicate request'
+        })
+        self.assertRedirects(res2, reverse('User:viewrequest'))
+        # Count remains 1
+        self.assertEqual(tbl_request.objects.filter(user=self.patient1, dotor=self.doctor, request_status=0).count(), 1)
+
+    def test_patient_cannot_view_another_patients_prescription(self):
+        """Patient 2 cannot view Patient 1's consultation prescription (IDOR isolation)."""
+        req1 = tbl_request.objects.create(
+            request_details="Consultation 1",
+            user=self.patient1,
+            dotor=self.doctor,
+            request_status=1
+        )
+        tbl_prescription.objects.create(requestpres=req1)
+
+        # Log in as Patient 2
+        session = self.client.session
+        session['uid'] = self.patient2.id
+        session['role'] = 'user'
+        session.save()
+
+        response = self.client.get(reverse('User:viewprescription', args=[req1.id]))
+        self.assertEqual(response.status_code, 404)
+
+    def test_payment_blocks_if_stock_depleted_before_payment(self):
+        """Payment re-verifies stock and blocks payment if stock is depleted between checkout and payment."""
+        session = self.client.session
+        session['uid'] = self.patient1.id
+        session['role'] = 'user'
+        session.save()
+
+        # Create checkout-initiated booking for 10 units (all available stock)
+        booking = tbl_booking.objects.create(
+            user=self.patient1,
+            booking_amount=Decimal("200.00"),
+            booking_status=1
+        )
+        tbl_cart.objects.create(
+            booking=booking,
+            medicine=self.otc_med,
+            cart_quantity=10,
+            cart_status=1,
+            unit_price=Decimal("20.00")
+        )
+
+        # Another paid order consumes 5 units before patient completes payment
+        paid_booking = tbl_booking.objects.create(user=self.patient2, booking_status=2)
+        tbl_cart.objects.create(
+            booking=paid_booking,
+            medicine=self.otc_med,
+            cart_quantity=5,
+            cart_status=1,
+            unit_price=Decimal("20.00")
+        )
+
+        # Patient 1 attempts to pay for 10 units, but only 5 remain
+        response = self.client.post(reverse('User:payment', args=[booking.id]))
+        self.assertRedirects(response, reverse('User:Mycart'))
+
+        booking.refresh_from_db()
+        # Booking must NOT have transitioned to paid (status 2)
+        self.assertNotEqual(booking.booking_status, 2)
+
+    def test_ajaxstar_duplicate_updates_existing_review(self):
+        """Submitting a second rating updates existing rating instead of duplicating records."""
+        session = self.client.session
+        session['uid'] = self.patient1.id
+        session['role'] = 'user'
+        session.save()
+
+        # Initial rating: 3 stars
+        self.client.post(reverse('User:ajaxstar'), {
+            'rating_data': '3',
+            'user_review': 'Average experience',
+            'pid': self.doctor.id
+        })
+        self.assertEqual(tbl_rating.objects.filter(user=self.patient1, doctor=self.doctor).count(), 1)
+        r1 = tbl_rating.objects.get(user=self.patient1, doctor=self.doctor)
+        self.assertEqual(r1.rating_data, 3)
+
+        # Updated rating: 5 stars
+        self.client.post(reverse('User:ajaxstar'), {
+            'rating_data': '5',
+            'user_review': 'Updated to excellent',
+            'pid': self.doctor.id
+        })
+        self.assertEqual(tbl_rating.objects.filter(user=self.patient1, doctor=self.doctor).count(), 1)
+        r1.refresh_from_db()
+        self.assertEqual(r1.rating_data, 5)
+        self.assertEqual(r1.user_review, 'Updated to excellent')
+
+    def test_invalid_file_upload_rejected_on_prescription(self):
+        """Disallowed file extensions (e.g. .exe) are rejected during prescription upload."""
+        session = self.client.session
+        session['uid'] = self.patient1.id
+        session['role'] = 'user'
+        session.save()
+
+        booking = tbl_booking.objects.create(
+            user=self.patient1,
+            booking_amount=Decimal("150.00"),
+            booking_status=1
+        )
+
+        fake_exe = SimpleUploadedFile("malicious.exe", b"MZexecutabledata", content_type="application/x-msdownload")
+        response = self.client.post(reverse('User:addprescription', args=[booking.id]), {
+            'prescription': fake_exe
+        })
+
+        self.assertEqual(response.status_code, 200)
+        booking.refresh_from_db()
+        self.assertFalse(bool(booking.prescription))

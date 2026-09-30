@@ -139,3 +139,29 @@ def shop_required(view_func):
         return view_func(request, *args, **kwargs)
     return _wrapped
 
+
+IMAGE_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.webp'}
+DOCUMENT_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.webp', '.pdf'}
+
+def validate_uploaded_file(file, allow_pdf=False, max_size_mb=5):
+    """
+    Validates uploaded file size and extension.
+    Returns (True, None) if valid, or (False, error_msg) if invalid.
+    """
+    import os
+    if not file:
+        return True, None
+
+    max_bytes = max_size_mb * 1024 * 1024
+    if file.size > max_bytes:
+        return False, f"File size ({round(file.size / (1024 * 1024), 1)} MB) exceeds maximum allowed limit of {max_size_mb} MB."
+
+    _, ext = os.path.splitext(file.name)
+    ext = ext.lower()
+    allowed = DOCUMENT_EXTENSIONS if allow_pdf else IMAGE_EXTENSIONS
+    if ext not in allowed:
+        types_str = ", ".join(sorted(allowed))
+        return False, f"Invalid file format '{ext}'. Allowed types: {types_str}."
+
+    return True, None
+

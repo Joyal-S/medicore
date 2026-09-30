@@ -1,8 +1,9 @@
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, Client
 from django.urls import reverse
 from Admin.models import tbl_district, tbl_place
 from Guest.models import tbl_registration, tbl_doctor
-from User.models import tbl_request
+from User.models import tbl_request, tbl_prescription
 from Doctor.models import tbl_disease
 from Doctor.ml_service import predict_from_symptoms, RAW_SYMPTOMS
 from mainproject.security import hash_password
@@ -104,3 +105,37 @@ class DoctorAndMLTests(TestCase):
     def test_ml_feature_vector_length(self):
         """Feature vector matches exact 132 symptoms required by the model."""
         self.assertEqual(len(RAW_SYMPTOMS), 132)
+
+    def test_doctor_prescription_creation_atomic(self):
+        """Doctor uploads valid prescription: request_status transitions to 1 and tbl_prescription is created."""
+        session = self.client.session
+        session['did'] = self.doctor1.id
+        session['role'] = 'doctor'
+        session.save()
+
+        pdf_file = SimpleUploadedFile("prescription.pdf", b"%PDF-1.4...", content_type="application/pdf")
+        response = self.client.post(reverse('Doctor:prescription', args=[self.req1.id]), {
+            'file': pdf_file
+        })
+        self.assertRedirects(response, reverse('Doctor:viewrequest'))
+
+        self.req1.refresh_from_db()
+        self.assertEqual(self.req1.request_status, 1)
+        self.assertTrue(tbl_prescription.objects.filter(requestpres=self.req1).exists())
+
+    def test_doctor_prescription_rejects_disallowed_file(self):
+        """Disallowed file upload (e.g. .exe) is rejected and does not update request status."""
+        session = self.client.session
+        session['did'] = self.doctor1.id
+        session['role'] = 'doctor'
+        session.save()
+
+        fake_exe = SimpleUploadedFile("malware.exe", b"MZmaliciouspayload", content_type="application/x-msdownload")
+        response = self.client.post(reverse('Doctor:prescription', args=[self.req1.id]), {
+            'file': fake_exe
+        })
+        self.assertEqual(response.status_code, 200)
+
+        self.req1.refresh_from_db()
+        self.assertEqual(self.req1.request_status, 0)
+        self.assertFalse(tbl_prescription.objects.filter(requestpres=self.req1).exists())

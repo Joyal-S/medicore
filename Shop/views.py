@@ -7,7 +7,7 @@ from Guest.models import tbl_shop
 from .models import tbl_category, tbl_medicine, tbl_stock
 from User.models import tbl_booking
 from mainproject.security import (
-    shop_required, hash_password, verify_and_upgrade_password, validate_password_strength
+    shop_required, hash_password, verify_and_upgrade_password, validate_password_strength, validate_uploaded_file
 )
 
 
@@ -103,6 +103,12 @@ def medicine(request):
             messages.error(request, "Invalid medicine price entered.")
             return render(request, 'Shop/Medicine.html', {'category': categories, 'medicine': medicines})
 
+        if photo:
+            is_valid, err = validate_uploaded_file(photo, allow_pdf=False, max_size_mb=5)
+            if not is_valid:
+                messages.error(request, err)
+                return render(request, 'Shop/Medicine.html', {'category': categories, 'medicine': medicines})
+
         category_obj = get_object_or_404(tbl_category, id=cat_id)
 
         tbl_medicine.objects.create(
@@ -173,9 +179,13 @@ def booking(request):
 @shop_required
 @require_POST
 def packing(request, id):
-    """Mark an order status as Packing (status=3). Enforces shop association."""
+    """Mark an order status as Packing (status=3). Enforces shop association and valid state transition."""
     shop = get_object_or_404(tbl_shop, id=request.session["sid"])
     booking_obj = get_object_or_404(tbl_booking, id=id, tbl_cart__medicine__shop=shop)
+    if booking_obj.booking_status != 2:
+        messages.error(request, f"Order #{booking_obj.id} cannot transition to Packing from its current state.")
+        return redirect("Shop:booking")
+
     booking_obj.booking_status = 3
     booking_obj.save(update_fields=['booking_status'])
     messages.success(request, f"Order #{booking_obj.id} marked as Packing.")
@@ -185,9 +195,13 @@ def packing(request, id):
 @shop_required
 @require_POST
 def delivery(request, id):
-    """Mark an order status as Delivered (status=4). Enforces shop association."""
+    """Mark an order status as Delivered (status=4). Enforces shop association and valid state transition."""
     shop = get_object_or_404(tbl_shop, id=request.session["sid"])
     booking_obj = get_object_or_404(tbl_booking, id=id, tbl_cart__medicine__shop=shop)
+    if booking_obj.booking_status != 3:
+        messages.error(request, f"Order #{booking_obj.id} cannot transition to Delivered from its current state.")
+        return redirect("Shop:booking")
+
     booking_obj.booking_status = 4
     booking_obj.save(update_fields=['booking_status'])
     messages.success(request, f"Order #{booking_obj.id} marked as Delivered.")

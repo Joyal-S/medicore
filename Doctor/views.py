@@ -6,7 +6,7 @@ from User.models import tbl_request, tbl_prescription
 from .models import tbl_disease
 from .ml_service import predict_from_symptoms, FRONTEND_SYMPTOMS
 from mainproject.security import (
-    doctor_required, hash_password, verify_and_upgrade_password, validate_password_strength
+    doctor_required, hash_password, verify_and_upgrade_password, validate_password_strength, validate_uploaded_file
 )
 
 
@@ -83,6 +83,11 @@ def prescription(request, id):
         file = request.FILES.get("file")
         if not file:
             messages.error(request, "Please select a prescription file to upload.")
+            return render(request, 'Doctor/Prescription.html', {'request': req})
+
+        is_valid, err = validate_uploaded_file(file, allow_pdf=True, max_size_mb=10)
+        if not is_valid:
+            messages.error(request, err)
             return render(request, 'Doctor/Prescription.html', {'request': req})
 
         with transaction.atomic():
