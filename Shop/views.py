@@ -3,18 +3,80 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.db import transaction
 from django.views.decorators.http import require_POST
+from django.core.paginator import Paginator
+
 from Guest.models import tbl_shop
 from .models import tbl_category, tbl_medicine, tbl_stock
-from User.models import tbl_booking
+from User.models import tbl_booking, tbl_notification
+from User.notifications import send_notification
+from Admin.audit import log_audit_event
 from mainproject.security import (
     shop_required, hash_password, verify_and_upgrade_password, validate_password_strength, validate_uploaded_file
 )
 
+# Standardized low-stock threshold for dispensaries (units)
+LOW_STOCK_THRESHOLD = 10
+
 
 @shop_required
 def home(request):
+    """
+    Pharmacy Dashboard showing live inventory statistics, low-stock alerts,
+    order queues, and notification badges.
+    """
     shop = get_object_or_404(tbl_shop, id=request.session["sid"])
-    return render(request, 'Shop/Home.html', {'shop': shop})
+
+    all_medicines = tbl_medicine.objects.filter(shop=shop).select_related('category')
+    total_medicines = all_medicines.count()
+
+    # Identify low-stock items using model method
+    low_stock_items = []
+    for med in all_medicines:
+        stock = med.get_available_stock()
+        if stock <= LOW_STOCK_THRESHOLD:
+            low_stock_items.append({
+                'medicine': med,
+                'available_stock': max(0, stock)
+            })
+
+    low_stock_count = len(low_stock_items)
+
+    # Order statistics
+    pending_orders = tbl_booking.objects.filter(
+        tbl_cart__medicine__shop=shop,
+        booking_status=2
+    ).distinct().count()
+
+    packing_orders = tbl_booking.objects.filter(
+        tbl_cart__medicine__shop=shop,
+        booking_status=3
+    ).distinct().count()
+
+    delivered_orders = tbl_booking.objects.filter(
+        tbl_cart__medicine__shop=shop,
+        booking_status=4
+    ).distinct().count()
+
+    unread_notifications = tbl_notification.objects.filter(shop=shop, is_read=False).count()
+
+    # Recent pending orders for fast processing
+    recent_orders = tbl_booking.objects.filter(
+        tbl_cart__medicine__shop=shop,
+        booking_status__in=[2, 3]
+    ).distinct().select_related('user').order_by('-booking_date')[:5]
+
+    return render(request, 'Shop/Home.html', {
+        'shop': shop,
+        'total_medicines': total_medicines,
+        'low_stock_items': low_stock_items[:8],
+        'low_stock_count': low_stock_count,
+        'low_stock_threshold': LOW_STOCK_THRESHOLD,
+        'pending_orders': pending_orders,
+        'packing_orders': packing_orders,
+        'delivered_orders': delivered_orders,
+        'unread_notifications': unread_notifications,
+        'recent_orders': recent_orders,
+    })
 
 
 @shop_required
@@ -81,8 +143,8 @@ def category(request):
 
 @shop_required
 def medicine(request):
+    """Manage medicines offered by this dispensary with pagination."""
     shop = get_object_or_404(tbl_shop, id=request.session["sid"])
-    medicines = tbl_medicine.objects.filter(shop=shop).select_related('category')
     categories = tbl_category.objects.all()
 
     if request.method == "POST":
@@ -101,29 +163,47 @@ def medicine(request):
                 raise ValueError("Price must be greater than zero.")
         except Exception:
             messages.error(request, "Invalid medicine price entered.")
-            return render(request, 'Shop/Medicine.html', {'category': categories, 'medicine': medicines})
+            return redirect("Shop:medicine")
 
         if photo:
             is_valid, err = validate_uploaded_file(photo, allow_pdf=False, max_size_mb=5)
             if not is_valid:
                 messages.error(request, err)
-                return render(request, 'Shop/Medicine.html', {'category': categories, 'medicine': medicines})
+                return redirect("Shop:medicine")
 
         category_obj = get_object_or_404(tbl_category, id=cat_id)
 
-        tbl_medicine.objects.create(
+        med = tbl_medicine.objects.create(
             medicine_name=med_name,
             medicine_details=med_details,
             medicine_price=price,
             medicine_photo=photo,
-            shop=shop,  # strictly enforce logged-in shop
+            shop=shop,
             category=category_obj,
             medicine_status=status
         )
+
+        log_audit_event(
+            action="MEDICINE_CREATED",
+            actor_type="Shop",
+            actor_name=shop.shop_name,
+            actor_id=shop.id,
+            details=f"Created medicine '{med.medicine_name}' priced ₹{price}."
+        )
+
         messages.success(request, f"Medicine '{med_name}' added successfully.")
         return redirect("Shop:medicine")
     else:
-        return render(request, 'Shop/Medicine.html', {'category': categories, 'medicine': medicines})
+        medicines_qs = tbl_medicine.objects.filter(shop=shop).select_related('category').order_by('medicine_name')
+        paginator = Paginator(medicines_qs, 10)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+
+        return render(request, 'Shop/Medicine.html', {
+            'category': categories,
+            'medicine': page_obj,
+            'page_obj': page_obj,
+        })
 
 
 @shop_required
@@ -135,6 +215,15 @@ def deletemed(request, deletemed=None, deletmed=None, **kwargs):
     med = get_object_or_404(tbl_medicine, id=med_id, shop=shop)
     med_name = med.medicine_name
     med.delete()
+
+    log_audit_event(
+        action="MEDICINE_DELETED",
+        actor_type="Shop",
+        actor_name=shop.shop_name,
+        actor_id=shop.id,
+        details=f"Deleted medicine '{med_name}'."
+    )
+
     messages.success(request, f"Medicine '{med_name}' deleted.")
     return redirect("Shop:medicine")
 
@@ -159,6 +248,15 @@ def addstock(request, mid):
 
         with transaction.atomic():
             tbl_stock.objects.create(medicine=med, stock_qty=qty)
+
+        log_audit_event(
+            action="STOCK_RESTOCKED",
+            actor_type="Shop",
+            actor_name=shop.shop_name,
+            actor_id=shop.id,
+            details=f"Added {qty} units to '{med.medicine_name}'."
+        )
+
         messages.success(request, f"Added {qty} units of stock for '{med.medicine_name}'.")
         return redirect("Shop:medicine")
     else:
@@ -167,13 +265,21 @@ def addstock(request, mid):
 
 @shop_required
 def booking(request):
-    """View customer orders that contain medicines from the logged-in shop."""
+    """View customer orders that contain medicines from the logged-in shop with pagination."""
     shop = get_object_or_404(tbl_shop, id=request.session["sid"])
-    bookings = tbl_booking.objects.filter(
+    bookings_qs = tbl_booking.objects.filter(
         booking_status__in=[2, 3, 4],
         tbl_cart__medicine__shop=shop
     ).distinct().select_related('user').prefetch_related('tbl_cart_set__medicine').order_by('-booking_date')
-    return render(request, 'Shop/Booking.html', {'booking': bookings})
+
+    paginator = Paginator(bookings_qs, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'Shop/Booking.html', {
+        'booking': page_obj,
+        'page_obj': page_obj,
+    })
 
 
 @shop_required
@@ -181,13 +287,30 @@ def booking(request):
 def packing(request, id):
     """Mark an order status as Packing (status=3). Enforces shop association and valid state transition."""
     shop = get_object_or_404(tbl_shop, id=request.session["sid"])
-    booking_obj = get_object_or_404(tbl_booking, id=id, tbl_cart__medicine__shop=shop)
+    booking_obj = get_object_or_404(tbl_booking.objects.filter(tbl_cart__medicine__shop=shop).distinct(), id=id)
     if booking_obj.booking_status != 2:
         messages.error(request, f"Order #{booking_obj.id} cannot transition to Packing from its current state.")
         return redirect("Shop:booking")
 
     booking_obj.booking_status = 3
     booking_obj.save(update_fields=['booking_status'])
+
+    # Send status update notification to patient
+    send_notification(
+        title=f"Order #{booking_obj.id} is Being Packed",
+        message=f"Dispensary {shop.shop_name} is preparing and packing your medicine order.",
+        user=booking_obj.user,
+        notification_type="order"
+    )
+
+    log_audit_event(
+        action="ORDER_PACKED",
+        actor_type="Shop",
+        actor_name=shop.shop_name,
+        actor_id=shop.id,
+        details=f"Order #{booking_obj.id} marked as Packing."
+    )
+
     messages.success(request, f"Order #{booking_obj.id} marked as Packing.")
     return redirect("Shop:booking")
 
@@ -197,13 +320,30 @@ def packing(request, id):
 def delivery(request, id):
     """Mark an order status as Delivered (status=4). Enforces shop association and valid state transition."""
     shop = get_object_or_404(tbl_shop, id=request.session["sid"])
-    booking_obj = get_object_or_404(tbl_booking, id=id, tbl_cart__medicine__shop=shop)
+    booking_obj = get_object_or_404(tbl_booking.objects.filter(tbl_cart__medicine__shop=shop).distinct(), id=id)
     if booking_obj.booking_status != 3:
         messages.error(request, f"Order #{booking_obj.id} cannot transition to Delivered from its current state.")
         return redirect("Shop:booking")
 
     booking_obj.booking_status = 4
     booking_obj.save(update_fields=['booking_status'])
+
+    # Send delivery confirmation notification to patient
+    send_notification(
+        title=f"Order #{booking_obj.id} Delivered",
+        message=f"Your order #{booking_obj.id} from {shop.shop_name} has been successfully delivered.",
+        user=booking_obj.user,
+        notification_type="order"
+    )
+
+    log_audit_event(
+        action="ORDER_DELIVERED",
+        actor_type="Shop",
+        actor_name=shop.shop_name,
+        actor_id=shop.id,
+        details=f"Order #{booking_obj.id} marked as Delivered."
+    )
+
     messages.success(request, f"Order #{booking_obj.id} marked as Delivered.")
     return redirect("Shop:booking")
 
@@ -211,4 +351,3 @@ def delivery(request, id):
 def slogout(request):
     request.session.flush()
     return redirect('Guest:login')
-

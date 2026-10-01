@@ -2,10 +2,10 @@ from decimal import Decimal
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, Client
 from django.urls import reverse
-from Admin.models import tbl_district, tbl_place
+from Admin.models import tbl_district, tbl_place, tbl_audit_log
 from Guest.models import tbl_registration, tbl_shop
 from Shop.models import tbl_category, tbl_medicine, tbl_stock
-from User.models import tbl_booking, tbl_cart
+from User.models import tbl_booking, tbl_cart, tbl_notification
 from mainproject.security import hash_password
 
 
@@ -192,7 +192,7 @@ class ShopSecurityAndManagementTests(TestCase):
             'category': self.category.id,
             'rad': 'yes'
         })
-        self.assertEqual(response.status_code, 200)
+        self.assertRedirects(response, reverse('Shop:medicine'))
         self.assertFalse(tbl_medicine.objects.filter(medicine_name='Invalid Med').exists())
 
     def test_shop_add_medicine_rejects_disallowed_file_type(self):
@@ -211,7 +211,7 @@ class ShopSecurityAndManagementTests(TestCase):
             'category': self.category.id,
             'rad': 'yes'
         })
-        self.assertEqual(response.status_code, 200)
+        self.assertRedirects(response, reverse('Shop:medicine'))
         self.assertFalse(tbl_medicine.objects.filter(medicine_name='Malware Med').exists())
 
     def test_shop_add_stock_rejects_negative_or_zero_quantity(self):
@@ -236,3 +236,127 @@ class ShopSecurityAndManagementTests(TestCase):
         })
         self.assertEqual(res_neg.status_code, 200)
         self.assertEqual(tbl_stock.objects.filter(medicine=self.med1).count(), initial_count)
+
+    def test_shop_dashboard_low_stock_and_metrics(self):
+        """Shop dashboard displays total medicines, low stock warning (threshold <= 10), and order counts."""
+        session = self.client.session
+        session['sid'] = self.shop1.id
+        session['role'] = 'shop'
+        session.save()
+
+        # Med1 has 0 stock currently (<= 10), so low_stock_count should be 1
+        response = self.client.get(reverse('Shop:home'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['total_medicines'], 1)
+        self.assertEqual(response.context['low_stock_count'], 1)
+        self.assertEqual(response.context['low_stock_threshold'], 10)
+
+        # Restock above threshold (e.g. 20 units)
+        tbl_stock.objects.create(medicine=self.med1, stock_qty=20)
+        res_restocked = self.client.get(reverse('Shop:home'))
+        self.assertEqual(res_restocked.context['low_stock_count'], 0)
+
+    def test_shop_packing_creates_audit_log_and_notification(self):
+        """Marking order as Packing dispatches patient notification and records audit log."""
+        user = tbl_registration.objects.create(
+            registration_name="John Doe",
+            registration_email="john@test.com",
+            registration_contact="1234509876",
+            registration_address="Main St",
+            registration_password=hash_password("johnpass"),
+            place=self.place
+        )
+        booking = tbl_booking.objects.create(
+            user=user,
+            booking_amount=Decimal("15.50"),
+            booking_status=2
+        )
+        tbl_cart.objects.create(
+            booking=booking,
+            medicine=self.med1,
+            cart_quantity=1,
+            cart_status=1,
+            unit_price=Decimal("15.50")
+        )
+
+        session = self.client.session
+        session['sid'] = self.shop1.id
+        session['role'] = 'shop'
+        session.save()
+
+        res = self.client.post(reverse('Shop:packing', args=[booking.id]))
+        self.assertRedirects(res, reverse('Shop:booking'))
+
+        # Check notification dispatched to user
+        self.assertTrue(tbl_notification.objects.filter(
+            user=user,
+            notification_type="order",
+            title__icontains=f"Order #{booking.id}"
+        ).exists())
+
+        # Check audit log recorded
+        self.assertTrue(tbl_audit_log.objects.filter(
+            action="ORDER_PACKED",
+            actor_type="Shop",
+            actor_id=self.shop1.id
+        ).exists())
+
+    def test_shop_addstock_creates_audit_log(self):
+        """Restocking medicine writes an audit log entry."""
+        session = self.client.session
+        session['sid'] = self.shop1.id
+        session['role'] = 'shop'
+        session.save()
+
+        response = self.client.post(reverse('Shop:addstock', args=[self.med1.id]), {
+            'stock_qty': '30'
+        })
+        self.assertRedirects(response, reverse('Shop:medicine'))
+
+        self.assertTrue(tbl_audit_log.objects.filter(
+            action="STOCK_RESTOCKED",
+            actor_type="Shop",
+            actor_id=self.shop1.id,
+            details__icontains="Paracetamol 500mg"
+        ).exists())
+
+    def test_shop_booking_pagination(self):
+        """Booking view paginates order history cleanly."""
+        user = tbl_registration.objects.create(
+            registration_name="Paginated User",
+            registration_email="page@test.com",
+            registration_contact="1234567899",
+            registration_address="Test St",
+            registration_password=hash_password("pass123"),
+            place=self.place
+        )
+
+        # Create 12 paid bookings for shop1
+        for i in range(12):
+            b = tbl_booking.objects.create(
+                user=user,
+                booking_amount=Decimal("15.50"),
+                booking_status=2
+            )
+            tbl_cart.objects.create(
+                booking=b,
+                medicine=self.med1,
+                cart_quantity=1,
+                cart_status=1,
+                unit_price=Decimal("15.50")
+            )
+
+        session = self.client.session
+        session['sid'] = self.shop1.id
+        session['role'] = 'shop'
+        session.save()
+
+        res_p1 = self.client.get(reverse('Shop:booking'))
+        self.assertEqual(res_p1.status_code, 200)
+        self.assertEqual(len(res_p1.context['page_obj']), 10)
+        self.assertTrue(res_p1.context['page_obj'].has_next())
+
+        res_p2 = self.client.get(reverse('Shop:booking') + '?page=2')
+        self.assertEqual(res_p2.status_code, 200)
+        self.assertEqual(len(res_p2.context['page_obj']), 2)
+

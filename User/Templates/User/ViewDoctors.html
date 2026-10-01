@@ -1,145 +1,74 @@
 {% extends 'User/Head.html' %}
 {% block content %}
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MedSure::Doctor List</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <style>
-        .text-warning {
-            color: orange;
-        }
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
-            margin: 0;
-            padding: 0;
-        }
+<div class="medicore-page-container">
+  <div class="medicore-page-header">
+    <h2 class="medicore-page-title"><i class="fas fa-user-md text-primary mr-2"></i> Verified Medical Specialists</h2>
+    <p class="medicore-page-subtitle">Consult experienced doctors online for clinical guidance and digital prescriptions</p>
+  </div>
 
-        h2 {
-            text-align: center;
-            color: #333;
-            margin-top: 20px;
-        }
-
-        table {
-            width: 90%;
-            margin: 30px auto;
-            border-collapse: collapse;
-            background-color: #fff;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        table th,
-        table td {
-            padding: 15px;
-            text-align: center;
-            border: 1px solid #ddd;
-        }
-
-        table th {
-            background-color: #4c61af;
-            color: white;
-            font-size: 18px;
-        }
-
-        table tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-
-        table tr:hover {
-            background-color: #f1f1f1;
-        }
-
-        table td img {
-            width: 80px;
-            height: 80px;
-            border-radius: 5px;
-        }
-
-        .doctor-name {
-            color: #1E88E5;
-            font-weight: bold;
-        }
-
-        .doctor-place {
-            color: #0D47A1;
-        }
-
-        a.request-btn {
-            text-decoration: none;
-            padding: 10px 15px;
-            color: white;
-            background-color: #367ea5;
-            border-radius: 5px;
-            transition: background-color 0.3s ease;
-            display: inline-block;
-        }
-
-        a.request-btn:hover {
-            background-color: #4575a0;
-        }
-
-        /* Mobile responsiveness */
-        @media (max-width: 768px) {
-            table {
-                width: 100%;
-            }
-
-            table th,
-            table td {
-                padding: 10px;
-            }
-        }
-    </style>
-</head>
-
-<body>
-
-    <h2>Doctor List</h2>
-
-    <table>
-        <thead>
-            <tr>
-                <th>SNO</th>
-                <th>Photo</th>
-                <th>License</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Contact</th>
-                <th>Place</th>
-                <th>Rating</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for i,j in doctor %}
-            <tr>
-                <td>{{ forloop.counter }}</td>
-                <td>{% if i.doctor_photo %}<img src="{{ i.doctor_photo.url }}" alt="Doctor Photo">{% else %}<span>No Photo</span>{% endif %}</td>
-                <td>{% if i.doctor_licese %}<img src="{{ i.doctor_licese.url }}" alt="License Photo">{% else %}<span>No License</span>{% endif %}</td>
-                <td><span class="doctor-name">{{ i.doctor_name }}</span></td>
-                <td>{{ i.doctor_email }}</td>
-                <td>{{ i.doctor_contact }}</td>
-                <td><span class="doctor-place">{{ i.place.place_name }}</span></td>
-                <td>
-                    {% for k in ar %} {% if k <= j %} <i class="fa-solid fa-star text-warning"></i>
-                    {% else %}
-                    <i class="fa-solid fa-star star-light"></i>
-                    {% endif %} {% endfor %}
-                </td>
-                <td>
-                    <a href="{% url 'User:request' i.id %}" class="request-btn">Request</a>
-                </td>
-            </tr>
+  <div class="medicore-grid-cards">
+    {% for item in doctor %}
+    {% with doc=item.0 avg_rating=item.1 %}
+    <div class="medicore-card d-flex flex-column h-100">
+      <div class="d-flex align-items-center mb-3">
+        <div style="width: 70px; height: 70px; border-radius: 50%; overflow: hidden; background: #e2e8f0; flex-shrink: 0; margin-right: 16px; border: 2px solid #0284c7;">
+          {% if doc.doctor_photo %}
+          <img src="{{ doc.doctor_photo.url }}" alt="{{ doc.doctor_name }}" style="width: 100%; height: 100%; object-fit: cover;">
+          {% else %}
+          <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 28px;">
+            <i class="fas fa-user-md"></i>
+          </div>
+          {% endif %}
+        </div>
+        <div>
+          <h3 style="font-size: 17px; font-weight: 700; color: #0f172a; margin: 0 0 4px 0;">
+            Dr. {{ doc.doctor_name }}
+          </h3>
+          <p class="text-muted mb-1" style="font-size: 13px;">
+            <i class="fas fa-map-marker-alt text-danger mr-1"></i> {{ doc.place.place_name }}, {{ doc.place.district.district_name }}
+          </p>
+          <div class="d-flex align-items-center" style="font-size: 13px; color: #f59e0b;">
+            {% for star in ar %}
+              {% if star <= avg_rating %}
+              <i class="fas fa-star mr-1"></i>
+              {% else %}
+              <i class="far fa-star mr-1 text-muted"></i>
+              {% endif %}
             {% endfor %}
-        </tbody>
-    </table>
+            <span class="text-muted ml-1" style="font-size: 12px;">({{ avg_rating }}/5)</span>
+          </div>
+        </div>
+      </div>
 
-</body>
+      <div class="mt-2 pt-2 border-top text-muted" style="font-size: 13px;">
+        <p class="mb-1"><i class="fas fa-phone-alt text-muted mr-1"></i> {{ doc.doctor_contact }}</p>
+        <p class="mb-3"><i class="fas fa-envelope text-muted mr-1"></i> {{ doc.doctor_email }}</p>
+      </div>
 
-</html>
+      <div class="mt-auto d-flex flex-wrap" style="gap: 8px;">
+        <a href="{% url 'User:request' doc.id %}" class="btn-medicore-primary flex-grow-1 justify-content-center">
+          <i class="fas fa-calendar-check"></i> Consult Doctor
+        </a>
+        <a href="{% url 'User:rating' doc.id %}" class="btn-medicore-outline">
+          <i class="fas fa-star"></i> Reviews
+        </a>
+      </div>
+    </div>
+    {% endwith %}
+    {% empty %}
+    <div class="col-12">
+      <div class="medicore-card medicore-empty-state">
+        <div class="medicore-empty-icon">
+          <i class="fas fa-user-md"></i>
+        </div>
+        <h4 class="medicore-empty-title">No Doctors Available</h4>
+        <p class="medicore-empty-text">There are currently no approved doctors registered in this category. Please check back shortly.</p>
+        <a href="{% url 'User:home' %}" class="btn-medicore-primary">Return to Dashboard</a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
 {% endblock content %}

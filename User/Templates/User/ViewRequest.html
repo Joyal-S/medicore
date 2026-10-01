@@ -1,116 +1,107 @@
 {% extends 'User/Head.html' %}
 {% block content %}
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MedSure::View Requests</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
-            margin: 0;
-            padding: 0;
-        }
+<div class="medicore-page-container">
+  <div class="medicore-page-header">
+    <h2 class="medicore-page-title"><i class="fas fa-file-medical text-primary mr-2"></i> My Doctor Consultations</h2>
+    <p class="medicore-page-subtitle">Track your submitted consultation requests and view doctor prescriptions</p>
+  </div>
 
-        h2 {
-            text-align: center;
-            color: #333;
-            margin-top: 20px;
-        }
-
-        table {
-            width: 90%;
-            margin: 30px auto;
-            border-collapse: collapse;
-            background-color: #fff;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        table th,
-        table td {
-            padding: 15px;
-            text-align: center;
-            border: 1px solid #ddd;
-        }
-
-        table th {
-            background-color: #4c6baf;
-            color: white;
-            font-size: 18px;
-        }
-
-        table tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-
-        table tr:hover {
-            background-color: #f1f1f1;
-        }
-
-        a.request-btn {
-            text-decoration: none;
-            padding: 10px 15px;
-            color: white;
-            background-color: #4c84af;
-            border-radius: 5px;
-            transition: background-color 0.3s ease;
-            display: inline-block;
-        }
-
-        a.request-btn:hover {
-            background-color: #4574a0;
-        }
-
-        /* Mobile responsiveness */
-        @media (max-width: 768px) {
-            table {
-                width: 100%;
-            }
-
-            table th,
-            table td {
-                padding: 10px;
-            }
-        }
-    </style>
-</head>
-
-<body>
-
-    <h2>Prescription Requests</h2>
-
-    <table>
+  <div class="medicore-card">
+    <div class="medicore-table-responsive">
+      <table class="medicore-table">
         <thead>
-            <tr>
-                <th>S.No</th>
-                <th>Doctor Name</th>
-                <th>Request Date</th>
-                <th>Details</th>
-                <th>Action</th>
-            </tr>
+          <tr>
+            <th>#</th>
+            <th>Doctor</th>
+            <th>Request Date</th>
+            <th>Consultation Details</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
         </thead>
         <tbody>
-            {% for i in requestview %}
-            <tr>
-                <td>{{ forloop.counter }}</td>
-                <td>{{ i.dotor.doctor_name }}</td>
-                <td>{{ i.request_date }}</td>
-                <td>{{ i.request_details }}</td>
-                <td>
-                    <a href="{% url 'User:viewprescription' i.id %}" class="request-btn">View Prescription</a>
-                    {% if i.request_status == 1 %}
-
-                    <a href="{% url 'User:rating' i.dotor.id %}">Rating</a>
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
+          {% for i in requestview %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>
+              <strong>Dr. {{ i.dotor.doctor_name }}</strong>
+            </td>
+            <td>{{ i.request_date|date:"d M Y, h:i A" }}</td>
+            <td style="max-width: 280px;">
+              <span class="text-truncate d-inline-block" style="max-width: 260px;" title="{{ i.request_details }}">{{ i.request_details }}</span>
+            </td>
+            <td>
+              {% if i.request_status == 1 %}
+              <span class="medicore-badge badge-completed"><i class="fas fa-check-circle"></i> Prescription Ready</span>
+              {% else %}
+              <span class="medicore-badge badge-pending"><i class="fas fa-clock"></i> Pending Review</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="d-flex flex-wrap" style="gap: 6px;">
+                {% if i.request_status == 1 %}
+                <a href="{% url 'User:viewprescription' i.id %}" class="btn-medicore-primary btn-medicore-sm">
+                  <i class="fas fa-file-prescription"></i> View Prescription
+                </a>
+                <a href="{% url 'User:rating' i.dotor.id %}" class="btn-medicore-outline btn-medicore-sm">
+                  <i class="fas fa-star"></i> Rate Doctor
+                </a>
+                {% else %}
+                <span class="text-muted" style="font-size: 13px;"><i class="fas fa-hourglass-half mr-1"></i> Awaiting Doctor</span>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="p-0">
+              <div class="medicore-empty-state">
+                <div class="medicore-empty-icon">
+                  <i class="fas fa-file-medical-alt"></i>
+                </div>
+                <h4 class="medicore-empty-title">No Consultations Yet</h4>
+                <p class="medicore-empty-text">You have not submitted any doctor consultation requests yet.</p>
+                <a href="{% url 'User:viewdoctor' %}" class="btn-medicore-primary">
+                  <i class="fas fa-user-md"></i> Find a Doctor
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
         </tbody>
-    </table>
+      </table>
+    </div>
 
-</body>
-</html>
+    {% if page_obj.has_other_pages %}
+    <div class="d-flex justify-content-between align-items-center p-3 border-top flex-wrap" style="gap: 10px;">
+      <span class="text-muted small">
+        Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ page_obj.paginator.count }} total consultations)
+      </span>
+      <ul class="pagination pagination-sm mb-0">
+        {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link">Previous</span></li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+          {% if page_obj.number == num %}
+          <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+          {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+          <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+          {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link">Next</span></li>
+        {% endif %}
+      </ul>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
 {% endblock content %}

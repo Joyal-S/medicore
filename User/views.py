@@ -4,23 +4,50 @@ from django.http import HttpResponse, JsonResponse
 from django.db.models import Sum, Count, Avg, Q
 from django.db import transaction
 from django.views.decorators.http import require_POST
+from django.core.paginator import Paginator
 from django.contrib import messages
 from Guest.models import tbl_registration, tbl_doctor, tbl_shop
 from Shop.models import tbl_category, tbl_medicine, tbl_stock
 from .models import (
     tbl_complaints, tbl_request, tbl_prescription,
-    tbl_booking, tbl_cart, tbl_rating
+    tbl_booking, tbl_cart, tbl_rating, tbl_notification
 )
+from .notifications import send_notification
 from mainproject.security import (
     user_required, hash_password, verify_and_upgrade_password, validate_password_strength, validate_uploaded_file
 )
 
 
-
 @user_required
 def home(request):
+    """Patient dashboard with active metrics, recent orders, and notifications."""
     user = get_object_or_404(tbl_registration, id=request.session["uid"])
-    return render(request, 'User/Home.html', {'user': user})
+
+    pending_consultations = tbl_request.objects.filter(user=user, request_status=0).count()
+    completed_consultations = tbl_request.objects.filter(user=user, request_status=1).count()
+    active_orders = tbl_booking.objects.filter(user=user, booking_status__in=[2, 3]).count()
+    total_orders = tbl_booking.objects.filter(user=user, booking_status__gte=2).count()
+    unread_notifications = tbl_notification.objects.filter(user=user, is_read=False).count()
+
+    recent_orders = tbl_booking.objects.filter(
+        user=user,
+        booking_status__gte=2
+    ).prefetch_related('tbl_cart_set__medicine').order_by('-booking_date')[:5]
+
+    recent_requests = tbl_request.objects.filter(
+        user=user
+    ).select_related('dotor').order_by('-request_date')[:5]
+
+    return render(request, 'User/Home.html', {
+        'user': user,
+        'pending_consultations': pending_consultations,
+        'completed_consultations': completed_consultations,
+        'active_orders': active_orders,
+        'total_orders': total_orders,
+        'unread_notifications': unread_notifications,
+        'recent_orders': recent_orders,
+        'recent_requests': recent_requests,
+    })
 
 
 @user_required
@@ -127,6 +154,15 @@ def request(request, id):
                 dotor=doctor,
                 request_status=0
             )
+
+            # Notify doctor
+            send_notification(
+                title="New Consultation Request",
+                message=f"Patient {user.registration_name} has requested a consultation: '{details[:75]}...'",
+                doctor=doctor,
+                notification_type="consultation"
+            )
+
             messages.success(request, f"Consultation request sent to Dr. {doctor.doctor_name}.")
             return redirect("User:viewrequest")
         else:
@@ -137,10 +173,18 @@ def request(request, id):
 
 @user_required
 def viewrequest(request):
-    """View consultation requests filed by the logged-in user."""
+    """View consultation requests filed by the logged-in user with pagination."""
     user = get_object_or_404(tbl_registration, id=request.session["uid"])
-    requestview = tbl_request.objects.filter(user=user).select_related('dotor').order_by('-request_date')
-    return render(request, 'User/ViewRequest.html', {'requestview': requestview})
+    request_qs = tbl_request.objects.filter(user=user).select_related('dotor').order_by('-request_date')
+
+    paginator = Paginator(request_qs, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'User/ViewRequest.html', {
+        'requestview': page_obj,
+        'page_obj': page_obj,
+    })
 
 
 @user_required
@@ -169,20 +213,62 @@ def viewshop(request):
 
 @user_required
 def viewmedicine(request, id):
-    """View medicines offered by a specific shop, with optional search filter."""
+    """View medicines offered by a specific shop, with multi-attribute filters and pagination."""
     shop = get_object_or_404(tbl_shop, id=id, shop_status=1)
-    categories = tbl_category.objects.all()
-    search_query = request.POST.get("Search", "").strip() if request.method == "POST" else ""
+    categories = tbl_category.objects.all().order_by('category_name')
 
-    if search_query:
-        medicines = tbl_medicine.objects.filter(shop=shop, medicine_name__icontains=search_query).select_related('category', 'shop')
+    q = request.GET.get("q", request.POST.get("Search", "")).strip()
+    category_id = request.GET.get("category", "")
+    availability = request.GET.get("availability", "")
+    prescription_filter = request.GET.get("prescription", "")
+    sort_by = request.GET.get("sort", "name_asc")
+
+    medicines = tbl_medicine.objects.filter(shop=shop).select_related('category', 'shop')
+
+    if q:
+        medicines = medicines.filter(
+            Q(medicine_name__icontains=q) | Q(medicine_details__icontains=q)
+        )
+
+    if category_id:
+        try:
+            medicines = medicines.filter(category_id=int(category_id))
+        except (ValueError, TypeError):
+            pass
+
+    if prescription_filter == 'rx':
+        medicines = medicines.filter(medicine_status=1)
+    elif prescription_filter == 'otc':
+        medicines = medicines.filter(medicine_status=0)
+
+    if sort_by == 'price_asc':
+        medicines = medicines.order_by('medicine_price')
+    elif sort_by == 'price_desc':
+        medicines = medicines.order_by('-medicine_price')
+    elif sort_by == 'name_desc':
+        medicines = medicines.order_by('-medicine_name')
     else:
-        medicines = tbl_medicine.objects.filter(shop=shop).select_related('category', 'shop')
+        medicines = medicines.order_by('medicine_name')
+
+    medicine_list = list(medicines)
+    if availability == 'in_stock':
+        medicine_list = [m for m in medicine_list if m.get_available_stock() > 0]
+
+    paginator = Paginator(medicine_list, 12)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
 
     return render(request, 'User/ViewMed.html', {
-        'med': medicines,
-        'category': categories,
-        'shop': shop
+        'med': page_obj,
+        'page_obj': page_obj,
+        'categories': categories,
+        'shop': shop,
+        'selected_q': q,
+        'selected_category': category_id,
+        'selected_availability': availability,
+        'selected_prescription': prescription_filter,
+        'selected_sort': sort_by,
+        'total_count': len(medicine_list),
     })
 
 
@@ -319,6 +405,25 @@ def payment(request, id):
 
             bookingdata.booking_status = 2  # Paid / Placed
             bookingdata.save(update_fields=['booking_status'])
+
+            # Send order confirmation notification to patient
+            send_notification(
+                title="Order Placed Successfully",
+                message=f"Your order #{bookingdata.id} for ₹{bookingdata.booking_amount} has been placed.",
+                user=user,
+                notification_type="order"
+            )
+
+            # Send order notification to each dispensary involved
+            shops_involved = set(item.medicine.shop for item in bookingdata.tbl_cart_set.select_related('medicine__shop').all())
+            for s in shops_involved:
+                send_notification(
+                    title="New Order Received",
+                    message=f"Order #{bookingdata.id} has been placed by {user.registration_name}.",
+                    shop=s,
+                    notification_type="order"
+                )
+
         messages.success(request, "Payment successful! Your order has been placed.")
         return redirect("User:payment_suc")
     else:
@@ -399,27 +504,114 @@ def addprescription(request, id):
 
 @user_required
 def search(request):
-    """Global medicine search."""
-    categories = tbl_category.objects.all()
-    search_query = request.POST.get("Search", "").strip() if request.method == "POST" else ""
+    """
+    Advanced Global Medicine Search with multi-attribute filtering & pagination.
+    Supports name/keyword, category, pharmacy, stock availability, prescription status, and sorting.
+    """
+    categories = tbl_category.objects.all().order_by('category_name')
+    shops = tbl_shop.objects.filter(shop_status=1).order_by('shop_name')
 
-    if search_query:
-        medicines = tbl_medicine.objects.filter(medicine_name__icontains=search_query)
+    q = request.GET.get("q", request.POST.get("Search", "")).strip()
+    category_id = request.GET.get("category", "")
+    shop_id = request.GET.get("shop", "")
+    availability = request.GET.get("availability", "")
+    prescription_filter = request.GET.get("prescription", "")
+    sort_by = request.GET.get("sort", "name_asc")
+
+    medicines = tbl_medicine.objects.select_related('category', 'shop').filter(shop__shop_status=1)
+
+    if q:
+        medicines = medicines.filter(
+            Q(medicine_name__icontains=q) | Q(medicine_details__icontains=q)
+        )
+
+    if category_id:
+        try:
+            medicines = medicines.filter(category_id=int(category_id))
+        except (ValueError, TypeError):
+            pass
+
+    if shop_id:
+        try:
+            medicines = medicines.filter(shop_id=int(shop_id))
+        except (ValueError, TypeError):
+            pass
+
+    if prescription_filter == 'rx':
+        medicines = medicines.filter(medicine_status=1)
+    elif prescription_filter == 'otc':
+        medicines = medicines.filter(medicine_status=0)
+
+    if sort_by == 'price_asc':
+        medicines = medicines.order_by('medicine_price')
+    elif sort_by == 'price_desc':
+        medicines = medicines.order_by('-medicine_price')
+    elif sort_by == 'name_desc':
+        medicines = medicines.order_by('-medicine_name')
     else:
-        medicines = tbl_medicine.objects.all()
+        medicines = medicines.order_by('medicine_name')
 
-    return render(request, 'User/ViewMed.html', {'med': medicines, 'category': categories})
+    medicine_list = list(medicines)
+    if availability == 'in_stock':
+        medicine_list = [m for m in medicine_list if m.get_available_stock() > 0]
+
+    paginator = Paginator(medicine_list, 12)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'User/ViewMed.html', {
+        'med': page_obj,
+        'page_obj': page_obj,
+        'categories': categories,
+        'shops': shops,
+        'selected_q': q,
+        'selected_category': category_id,
+        'selected_shop': shop_id,
+        'selected_availability': availability,
+        'selected_prescription': prescription_filter,
+        'selected_sort': sort_by,
+        'total_count': len(medicine_list),
+    })
 
 
 @user_required
 def myorder(request):
-    """View past and active orders for the logged-in user."""
+    """View past and active orders for the logged-in user with pagination."""
     user = get_object_or_404(tbl_registration, id=request.session["uid"])
-    orders = tbl_booking.objects.filter(
+    orders_qs = tbl_booking.objects.filter(
         user=user,
         booking_status__in=[2, 3, 4]
     ).prefetch_related('tbl_cart_set__medicine').order_by('-booking_date')
-    return render(request, 'User/MyOrder.html', {'orders': orders})
+
+    paginator = Paginator(orders_qs, 8)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'User/MyOrder.html', {
+        'orders': page_obj,
+        'page_obj': page_obj,
+    })
+
+
+@user_required
+def notifications(request):
+    """View and manage patient notifications."""
+    user = get_object_or_404(tbl_registration, id=request.session["uid"])
+
+    if request.method == "POST":
+        tbl_notification.objects.filter(user=user, is_read=False).update(is_read=True)
+        messages.success(request, "All notifications marked as read.")
+        return redirect("User:notifications")
+
+    notifs = tbl_notification.objects.filter(user=user).order_by('-created_at')
+    paginator = Paginator(notifs, 15)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
+    return render(request, 'User/Notifications.html', {
+        'notifications': page_obj,
+        'page_obj': page_obj,
+        'unread_count': tbl_notification.objects.filter(user=user, is_read=False).count(),
+    })
 
 
 @user_required

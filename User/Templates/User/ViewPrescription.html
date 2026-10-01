@@ -1,147 +1,75 @@
 {% extends 'User/Head.html' %}
 {% block content %}
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MedSure::View Prescription</title>
+<div class="medicore-page-container" style="max-width: 800px;">
+  <div class="medicore-page-header">
+    <h2 class="medicore-page-title"><i class="fas fa-file-prescription text-primary mr-2"></i> Clinical Prescription</h2>
+    <p class="medicore-page-subtitle">Prescription issued by your consulting doctor</p>
+  </div>
 
-    <style>
-        /* General Page Styles */
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f4f4f9;
-            text-align: center;
-            margin: 20px;
-        }
-
-        h2 {
-            color: #333;
-            margin-bottom: 30px;
-            font-size: 32px;
-        }
-
-        /* Grid Container */
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            padding: 20px;
-            justify-content: center;
-        }
-
-        /* Card Styles */
-        .card {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-            text-align: left;
-            width: 250px;
-            height: 350px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            border: 1px solid #ddd;
-            transition: transform 0.3s ease-in-out;
-        }
-
-        .card:hover {
-            transform: scale(1.05);
-            box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.2);
-        }
-
-        /* Section Titles */
-        .card h3 {
-            font-size: 18px;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 10px;
-        }
-
-        .card p {
-            font-size: 14px;
-            color: #555;
-            line-height: 1.6;
-        }
-
-        /* Prescription Image */
-        .prescription-img {
-            width: 100px;
-            height: 100px;
-            object-fit: cover;
-            border-radius: 8px;
-            margin-top: 10px;
-            margin-bottom: 15px;
-        }
-
-        /* View Prescription Button */
-        .view-btn {
-            background-color: #007bff;
-            color: white;
-            padding: 10px 15px;
-            text-decoration: none;
-            border-radius: 5px;
-            font-size: 14px;
-            display: inline-block;
-            transition: background-color 0.3s ease-in-out;
-            margin-top: 10px;
-        }
-
-        .view-btn:hover {
-            background-color: #0056b3;
-        }
-
-        /* Alert Box */
-        .alert {
-            color: red;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-    </style>
-
-    <script>
-        window.onload = function () {
-            var showAlert = "{{ show_alert }}";
-            if (showAlert === "True") {
-                alert("No prescription available for this request.");
-            }
-        };
-    </script>
-</head>
-
-<body>
-
-    <h2>Prescription Requests</h2>
-
-    <div class="grid-container">
-        {% for i in prescription %}
-        <div class="card">
-            <h3>Doctor Name</h3>
-            <p>{{ i.requestpres.dotor.doctor_name }}</p>
-
-            <h3>Request Date</h3>
-            <p>{{ i.requestpres.request_date }}</p>
-
-            <h3>Request Details</h3>
-            <p>{{ i.requestpres.request_details }}</p>
-
-            <h3>Prescription</h3>
-            {% if i.prescription_file %}
-            <a href="{{ i.prescription_file.url }}" download>
-                <img src="{{ i.prescription_file.url }}" class="prescription-img">
-            </a>
-
-            <a href="{{ i.prescription_file.url }}" target="_blank" class="view-btn">Open Prescription</a>
-            {% else %}
-            <p>No prescription file attached</p>
-            {% endif %}
-        </div>
-        {% endfor %}
+  <div class="medicore-card">
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom flex-wrap" style="gap: 10px;">
+      <div>
+        <h3 style="font-size: 18px; font-weight: 700; color: #0f172a; margin: 0;">
+          Dr. {{ requestview.dotor.doctor_name }}
+        </h3>
+        <p class="text-muted mb-0" style="font-size: 13px;">
+          <i class="fas fa-calendar-alt mr-1"></i> Consultation Date: {{ requestview.request_date|date:"d M Y, h:i A" }}
+        </p>
+      </div>
+      <div>
+        <span class="medicore-badge badge-completed"><i class="fas fa-check-circle"></i> Official Prescription</span>
+      </div>
     </div>
 
-</body>
-</html>
+    <div class="mb-4 p-3 rounded" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+      <h5 style="font-size: 14px; font-weight: 600; color: #475569; margin-bottom: 6px;">Patient Symptoms / Query:</h5>
+      <p style="font-size: 14px; color: #1e293b; margin: 0;">{{ requestview.request_details }}</p>
+    </div>
+
+    <div class="mb-4">
+      <h5 style="font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 15px;">Uploaded Prescription Document(s):</h5>
+      {% for i in prescription %}
+      <div class="p-3 rounded mb-3 d-flex align-items-center justify-content-between flex-wrap" style="background: #ffffff; border: 1px solid #cbd5e1; gap: 15px;">
+        <div class="d-flex align-items-center" style="gap: 15px;">
+          <div style="width: 50px; height: 50px; background: #e0f2fe; color: #0284c7; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px;">
+            <i class="fas fa-file-medical"></i>
+          </div>
+          <div>
+            <h6 style="margin: 0; font-size: 14px; font-weight: 600; color: #0f172a;">Prescription #{{ i.id }}</h6>
+            <span class="text-muted" style="font-size: 12px;">Uploaded: {{ i.prescription_date|date:"d M Y" }}</span>
+          </div>
+        </div>
+
+        <div class="d-flex flex-wrap" style="gap: 8px;">
+          {% if i.prescription_file %}
+          <a href="{{ i.prescription_file.url }}" target="_blank" class="btn-medicore-primary btn-medicore-sm">
+            <i class="fas fa-external-link-alt"></i> View Document
+          </a>
+          <a href="{{ i.prescription_file.url }}" download class="btn-medicore-outline btn-medicore-sm">
+            <i class="fas fa-download"></i> Download
+          </a>
+          {% else %}
+          <span class="text-muted" style="font-size: 13px;">No file attached</span>
+          {% endif %}
+        </div>
+      </div>
+      {% empty %}
+      <div class="medicore-empty-state py-3">
+        <p class="mb-0">No prescription documents found for this consultation.</p>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+      <a href="{% url 'User:viewrequest' %}" class="btn-medicore-outline">
+        <i class="fas fa-arrow-left"></i> Back to Consultations
+      </a>
+      <a href="{% url 'User:search' %}" class="btn-medicore-secondary">
+        <i class="fas fa-pills"></i> Order Medicines
+      </a>
+    </div>
+  </div>
+</div>
+
 {% endblock content %}

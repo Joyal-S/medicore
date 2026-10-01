@@ -75,3 +75,22 @@ class tbl_scategary(models.Model):
 
     def __str__(self):
         return self.scategary_name
+
+
+class tbl_audit_log(models.Model):
+    action = models.CharField(max_length=100, db_index=True)
+    actor_type = models.CharField(max_length=50)  # 'Admin', 'Doctor', 'Shop', 'System'
+    actor_name = models.CharField(max_length=100)
+    actor_id = models.IntegerField(null=True, blank=True)
+    details = models.TextField()
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        verbose_name = "Audit Log"
+        verbose_name_plural = "Audit Logs"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"[{self.action}] {self.actor_name} - {self.created_at.strftime('%Y-%m-%d %H:%M')}"
+

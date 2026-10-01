@@ -1,488 +1,157 @@
+{% extends 'User/Head.html' %}
 {% load mathfilters %}
-<!DOCTYPE html>
-<html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <link
-            rel="stylesheet"
-            href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css"
-            />
-        <style>
+{% block content %}
 
-            .medicine-image {
-                float: left;
-                width: 20%;
-            }
+<div class="medicore-page-container">
+  <div class="medicore-page-header">
+    <h2 class="medicore-page-title"><i class="fas fa-shopping-cart text-primary mr-2"></i> My Shopping Cart</h2>
+    <p class="medicore-page-subtitle">Review items, verify quantities, and proceed to secure order checkout</p>
+  </div>
 
-            .medicine-details {
-                float: left;
-                width: 37%;
-            }
-
-            .medicine-price {
-                float: left;
-                width: 12%;
-            }
-
-            .medicine-quantity {
-                float: left;
-                width: 10%;
-            }
-
-            .medicine-removal {
-                float: left;
-                width: 9%;
-            }
-
-            .medicine-line-price {
-                float: left;
-                width: 12%;
-                text-align: right;
-            }
-
-            /* This is used as the traditional .clearfix class */
-            .group:before,
-            .shopping-cart:before,
-            .column-labels:before,
-            .medicine:before,
-            .totals-item:before,
-            .group:after,
-            .shopping-cart:after,
-            .column-labels:after,
-            .medicine:after,
-            .totals-item:after {
-                content: "";
-                display: table;
-            }
-
-            .group:after,
-            .shopping-cart:after,
-            .column-labels:after,
-            .medicine:after,
-            .totals-item:after {
-                clear: both;
-            }
-
-            .group,
-            .shopping-cart,
-            .column-labels,
-            .medicine,
-            .totals-item {
-                zoom: 1;
-            }
-
-            /* Apply clearfix in a few places */
-            /* Apply dollar signs */
-            .medicine .medicine-price:before,
-            .medicine .medicine-line-price:before,
-            .totals-value:before {
-                content: "Rs.";
-            }
-
-            /* Body/Header stuff */
-            body {
-                padding: 0px 30px 30px 20px;
-                font-family: "HelveticaNeue-Light", "Helvetica Neue Light",
-                    "Helvetica Neue", Helvetica, Arial, sans-serif;
-                font-weight: 100;
-            }
-
-            h1 {
-                font-weight: 100;
-            }
-
-            label {
-                color: #aaa;
-            }
-
-            .shopping-cart {
-                margin-top: -45px;
-            }
-
-            /* Column headers */
-            .column-labels label {
-                padding-bottom: 15px;
-                margin-bottom: 15px;
-                border-bottom: 1px solid #eee;
-            }
-            .column-labels .medicine-image,
-            .column-labels .medicine-details,
-            .column-labels .medicine-removal {
-                text-indent: 0px;
-            }
-
-            /* medicine entries */
-            .medicine {
-                margin-bottom: 20px;
-                padding-bottom: 10px;
-                border-bottom: 1px solid #eee;
-            }
-            .medicine .medicine-image {
-                text-align: center;
-            }
-            .medicine .medicine-image img {
-                width: 100px;
-            }
-            .medicine .medicine-details .medicine-title {
-                margin-right: 20px;
-                font-family: "HelveticaNeue-Medium", "Helvetica Neue Medium";
-            }
-            .medicine .medicine-details .medicine-description {
-                margin: 5px 20px 5px 0;
-                line-height: 1.4em;
-            }
-            .medicine .medicine-quantity input {
-                width: 40px;
-            }
-            .medicine .remove-medicine {
-                border: 0;
-                padding: 4px 8px;
-                background-color: #c66;
-                color: #fff;
-                font-family: "HelveticaNeue-Medium", "Helvetica Neue Medium";
-                font-size: 12px;
-                border-radius: 3px;
-            }
-            .medicine .remove-medicine:hover {
-                background-color: #a44;
-            }
-
-            /* Totals section */
-            .totals .totals-item {
-                float: right;
-                clear: both;
-                width: 100%;
-                margin-bottom: 10px;
-            }
-            .totals .totals-item label {
-                float: left;
-                clear: both;
-                width: 79%;
-                text-align: right;
-            }
-            .totals .totals-item .totals-value {
-                float: right;
-                width: 21%;
-                text-align: right;
-            }
-            .totals .totals-item-total {
-                font-family: "HelveticaNeue-Medium", "Helvetica Neue Medium";
-            }
-
-            .checkout {
-                float: right;
-                border: 0;
-                margin-top: 20px;
-                padding: 6px 25px;
-                background-color: #6b6;
-                color: #fff;
-                font-size: 25px;
-                border-radius: 3px;
-            }
-
-            .checkout:hover {
-                background-color: #494;
-            }
-
-            /* Make adjustments for tablet */
-            @media screen and (max-width: 650px) {
-                .shopping-cart {
-                    margin: 0;
-                    padding-top: 20px;
-                    border-top: 1px solid #eee;
-                }
-
-                .column-labels {
-                    display: none;
-                }
-
-                .medicine-image {
-                    float: right;
-                    width: auto;
-                }
-                .medicine-image img {
-                    margin: 0 0 10px 10px;
-                }
-
-                .medicine-details {
-                    float: none;
-                    margin-bottom: 10px;
-                    width: auto;
-                }
-
-                .medicine-price {
-                    clear: both;
-                    width: 70px;
-                }
-
-                .medicine-quantity {
-                    width: 100px;
-                }
-                .medicine-quantity input {
-                    margin-left: 20px;
-                }
-
-                .medicine-quantity:before {
-                    content: "x";
-                }
-
-                .medicine-removal {
-                    width: auto;
-                }
-
-                .medicine-line-price {
-                    float: right;
-                    width: 70px;
-                }
-            }
-            /* Make more adjustments for phone */
-            @media screen and (max-width: 350px) {
-                .medicine-removal {
-                    float: right;
-                }
-
-                .medicine-line-price {
-                    float: right;
-                    clear: left;
-                    width: auto;
-                    margin-top: 10px;
-                }
-
-                .medicine .medicine-line-price:before {
-                    content: "Item Total: ₹";
-                }
-
-                .totals .totals-item label {
-                    width: 60%;
-                }
-                .totals .totals-item .totals-value {
-                    width: 40%;
-                }
-            }
-
-
-            label{
-                margin: 0px 0px;
-            }
-
-
-
-            /*SWITCH 2 ------------------------------------------------*/
-            .switch2{
-                position: relative;
-                display: inline-block;
-                width: 60px;
-                height: 32px;
-                border-radius: 27px;
-                background-color: #bdc3c7;
-                cursor: pointer;
-                transition: all .3s;
-            }
-            .switch2 input{
-                display: none;
-            }
-            .switch2 input:checked + div{
-                left: calc(100% - 40px);
-            }
-            .switch2 div{
-                position: absolute;
-                width: 40px;
-                height: 40px;
-                border-radius: 25px;
-                background-color: white;
-                top: -4px;
-                left: 0px;
-                box-shadow: 0px 0px 0.5px 0.5px rgb(170,170,170);
-                transition: all .2s;
-            }
-
-            .switch2-checked{
-                background-color: #2ecc71;
-            }
-
-            .con {
-                display: flex;
-                justify-content: flex-end;
-            }
-            .cons {
-                padding: 10px;
-                background-color: #2ecc71;
-                border-radius: 10px;
-                text-decoration: none;
-            }
-        </style>
-   
-   <body onload="recalculateCart()">
-    <div class="con"><a href="{% url 'User:home' %}" class="cons">Home</a></div>
-    {% if messages %}
-        <div style="max-width: 600px; margin: 10px auto;">
-        {% for message in messages %}
-            <div style="padding: 10px 15px; margin-bottom: 10px; border-radius: 5px; background-color: {% if message.tags == 'error' %}#f8d7da; color: #721c24; border: 1px solid #f5c6cb{% else %}#d4edda; color: #155724; border: 1px solid #c3e6cb{% endif %};">
-                {{ message }}
-            </div>
-        {% endfor %}
-        </div>
-    {% endif %}
-    <form method="POST" id="Form" data-quantity-url="{% url 'User:cartqty' %}" >
-        {%csrf_token %}
-        <div class="shopping-cart" style="margin-top: 50px">
-            <div class="column-labels">
-                <label class="medicine-image">Image</label>
-                <label class="medicine-details">medicine</label>
-             
-                 <label class="medicine-price">Price</label>
-                <label class="medicine-quantity">Quantity</label>
-                <label class="medicine-removal">Remove</label>
-                <label class="medicine-line-price">Total</label>
-            </div>
-            {% for i in cartdata %}
-        <div class="medicine">
-            <div class="medicine-image">
-                {% if i.medicine.medicine_photo %}
-                    <img src="{{i.medicine.medicine_photo.url}}" alt="{{ i.medicine.medicine_name }}">
-                {% else %}
-                    <div style="width:100px;height:100px;background:#eee;display:flex;align-items:center;justify-content:center;color:#888;border-radius:5px;">No Image</div>
-                {% endif %}
-            </div>
-            <div class="medicine-details">
-                <div class="medicine-title">{{i.medicine.medicine_name}}</div>
-
-           
-            </div>
-            <div class="medicine-price">{{i.medicine.medicine_price}}</div>
-            <div class="medicine-quantity">
-                <input alt="{{i.id}}" type="number" value="{{i.cart_quantity}}" min="1"  max="{{i.total_stock}}"  id="qty" class="qty"/>
-
-            </div>
-            <div class="medicine-removal">
-                <form method="POST" action="{% url 'User:delcart' i.id %}" style="display:inline;">
+  {% if cart %}
+  <div class="row">
+    <!-- Cart Items Table -->
+    <div class="col-lg-8 mb-4">
+      <div class="medicore-card p-0 overflow-hidden">
+        <div class="table-responsive">
+          <table class="medicore-table" id="cart-table">
+            <thead>
+              <tr>
+                <th>Medicine</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Subtotal</th>
+                <th class="text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for i in cart %}
+              <tr class="cart-item-row" data-cart-id="{{ i.id }}">
+                <td>
+                  <div class="d-flex align-items-center" style="gap: 12px;">
+                    <div style="width: 55px; height: 55px; border-radius: 8px; overflow: hidden; background: #f1f5f9; flex-shrink: 0; border: 1px solid #e2e8f0;">
+                      {% if i.medicine.medicine_photo %}
+                      <img src="{{ i.medicine.medicine_photo.url }}" alt="{{ i.medicine.medicine_name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                      {% else %}
+                      <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 20px;">
+                        <i class="fas fa-pills"></i>
+                      </div>
+                      {% endif %}
+                    </div>
+                    <div>
+                      <h5 style="margin: 0; font-size: 15px; font-weight: 700; color: #0f172a;">{{ i.medicine.medicine_name }}</h5>
+                      <span class="text-muted" style="font-size: 12px;">{{ i.medicine.category.category_name }}</span>
+                      <div>
+                        {% if i.medicine.medicine_status == 1 %}
+                        <span class="medicore-badge badge-rx mt-1" style="font-size: 11px;"><i class="fas fa-prescription"></i> Rx Required</span>
+                        {% else %}
+                        <span class="medicore-badge badge-otc mt-1" style="font-size: 11px;"><i class="fas fa-check"></i> OTC</span>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td style="font-weight: 600; color: #334155;">
+                  ₹{{ i.medicine.medicine_price }}
+                </td>
+                <td style="width: 130px;">
+                  <div class="d-flex align-items-center">
+                    <input type="number" class="medicore-input item-qty-input text-center" 
+                           alt="{{ i.id }}" value="{{ i.cart_quantity }}" min="1" max="{{ i.total_stock }}" 
+                           style="width: 70px; padding: 6px;" title="Available stock: {{ i.total_stock }}">
+                  </div>
+                </td>
+                <td style="font-weight: 700; color: #0284c7;">
+                  ₹{{ i.cart_quantity|mul:i.medicine.medicine_price }}
+                </td>
+                <td class="text-center">
+                  <form method="POST" action="{% url 'User:delcart' i.id %}" style="display: inline;">
                     {% csrf_token %}
-                    <button type="submit" style="background:#e74c3c;color:#fff;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;">Remove</button>
-                </form>
-            </div>
-            <div class="medicine-line-price">
-                {{i.cart_quantity|mul:i.medicine.medicine_price}}
+                    <button type="submit" class="btn btn-outline-danger btn-sm" title="Remove from cart" onclick="return confirm('Remove this item from your cart?');">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <a href="{% url 'User:search' %}" class="btn-medicore-outline">
+        <i class="fas fa-arrow-left"></i> Continue Shopping
+      </a>
+    </div>
 
-               </div>
-               </div>
-               {% endfor %}
-               <div class="totals">
-                <div class="totals-item totals-item-total">
-                    <label>Grand Total</label>
-                    <div class="totals-value" id="cart-total">0</div>
-                    <input type="hidden" id="cart-totalamt" name="carttotalamt" value=""/>
-                </div>
-            </div>
-            <span >COD</span>
-            <label class="switch2 switch2-checked">
+    <!-- Order Summary & Checkout Card -->
+    <div class="col-lg-4">
+      <div class="medicore-card">
+        <h4 class="medicore-card-title mb-3"><i class="fas fa-receipt text-primary mr-1"></i> Order Summary</h4>
+        
+        <div class="d-flex justify-content-between py-2 border-bottom text-muted" style="font-size: 14px;">
+          <span>Items in Cart:</span>
+          <span class="font-weight-bold text-dark">{{ cart|length }} item(s)</span>
+        </div>
+        <div class="d-flex justify-content-between py-2 border-bottom text-muted" style="font-size: 14px;">
+          <span>Delivery Charge:</span>
+          <span class="text-success font-weight-bold">FREE</span>
+        </div>
+        <div class="d-flex justify-content-between py-3 mb-3 border-bottom" style="font-size: 17px; font-weight: 800; color: #0f172a;">
+          <span>Order Total:</span>
+          <span style="color: #0284c7;" id="display-cart-total">
+            ₹{{ data.booking_amount }}
+          </span>
+        </div>
 
-                <input type="checkbox" name="cb_checkout" checked />
-                <div></div>
-
-            </label>
-            <span>Card Payment</span>
-            <button type="submit" class="checkout" name="btn_checkout">Checkout</button>
-
-
+        <form method="POST" action="{% url 'User:Mycart' %}" id="checkout-form">
+          {% csrf_token %}
+          <button type="submit" class="btn-medicore-primary btn-block justify-content-center py-3" style="font-size: 16px;">
+            <i class="fas fa-lock"></i> Proceed to Checkout
+          </button>
         </form>
-         <!-- partial -->
-         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
-         <script>
-         /* Set rates + misc */
-         var fadeTime = 300;
- 
-         /* Assign actions */
-       
- 
-         /* Recalculate cart */
-         function recalculateCart() {
-             var subtotal = 0;
- 
-             /* Sum up row totals */
-             $(".medicine").each(function() {
-                 subtotal += parseFloat(
-                         $(this).children(".medicine-line-price").text()
-                         );
-             });
- 
-             /* Calculate totals */
-             var total = subtotal;
- 
-             /* Update totals display */
-             $(".totals-value").fadeOut(fadeTime, function() {
-                 $("#cart-total").html(total.toFixed(2));
-                 document.getElementById("cart-totalamt").value = total.toFixed(2);
-                 if (total == 0) {
-                     $(".checkout").fadeOut(fadeTime);
-                 } else {
-                     $(".checkout").fadeIn(fadeTime);
-                 }
-                 $(".totals-value").fadeIn(fadeTime);
-             });
-         }
- 
-         /* Update quantity */
-         function updateQuantity(quantityInput) {
-             /* Calculate line price */
-             var medicineRow = $(quantityInput).parent().parent();
-             var price = parseFloat(medicineRow.children(".medicine-price").text());
-             var quantity = $(quantityInput).val();
-             var linePrice = price * quantity;
-             /* Update line price display and recalc cart totals */
-             medicineRow.children(".medicine-line-price").each(function() {
-                 $(this).fadeOut(fadeTime, function() {
-                     $(this).text(linePrice.toFixed(2));
-                     recalculateCart();
-                     $(this).fadeIn(fadeTime);
-                 });
-             });
-         }
- 
-         /* Remove item from cart */
-         function removeItem(removeButton) {
-             /* Remove row from DOM and recalc cart total */
-             var medicineRow = $(removeButton).parent().parent();
-             medicineRow.slideUp(fadeTime, function() {
-                 medicineRow.remove();
-                 recalculateCart();
-             });
- 
-         }
- 
-         $('.switch2 input').on('change', function() {
-             var dad = $(this).parent();
-             if ($(this).is(':checked'))
-                 dad.addClass('switch2-checked');
-             else
-                 dad.removeClass('switch2-checked');
-         });
- 
- 
-         </script>
-     </body>
-     <br>  <br>  <br>  <br>  <br>  <br>  <br>
-    
- </html>
- 
- 
- 
- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-     <script>
-         $(".qty").change(function () {
-             var qid = $(this).val();
-             var cid = $(this).attr('alt');
-             var ur = $("#Form").attr("data-quantity-url");
-             $.ajax({
-                 type: "POST",
-                 url: ur,
-                 data: {
-                     QTY: qid,
-                     ALT: cid,
-                     csrfmiddlewaretoken: '{{ csrf_token }}'
-                 },
-                 complete: function () {
-                     window.location = "{% url 'User:Mycart' %}";
-                 }
-             });
-         });
-     </script>
+
+        <div class="mt-3 text-center text-muted" style="font-size: 12px;">
+          <i class="fas fa-shield-alt text-success mr-1"></i> Safe & Secure Checkout • Real-time Stock Verified
+        </div>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="medicore-card medicore-empty-state">
+    <div class="medicore-empty-icon">
+      <i class="fas fa-shopping-cart"></i>
+    </div>
+    <h3 class="medicore-empty-title">Your Cart is Currently Empty</h3>
+    <p class="medicore-empty-text">Browse our pharmacy catalog to add required medicines and essentials.</p>
+    <a href="{% url 'User:search' %}" class="btn-medicore-primary px-4 py-2">
+      <i class="fas fa-pills mr-1"></i> Browse Medicines
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Quantity Synchronization Script -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+  $(document).ready(function() {
+    $(".item-qty-input").change(function () {
+      var qid = $(this).val();
+      var cid = $(this).attr('alt');
+      var ur = "{% url 'User:cartqty' %}";
+      $.ajax({
+        type: "POST",
+        url: ur,
+        data: {
+          QTY: qid,
+          ALT: cid,
+          csrfmiddlewaretoken: '{{ csrf_token }}'
+        },
+        complete: function () {
+          window.location.reload();
+        }
+      });
+    });
+  });
+</script>
+
+{% endblock content %}

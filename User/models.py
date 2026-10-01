@@ -1,6 +1,7 @@
 from django.db import models
-from Guest.models import tbl_registration, tbl_doctor
+from Guest.models import tbl_registration, tbl_doctor, tbl_shop
 from Shop.models import tbl_medicine
+
 
 
 class tbl_complaints(models.Model):
@@ -158,3 +159,23 @@ class tbl_rating(models.Model):
 
     def __str__(self):
         return f"Rating {self.rating_data}/5 for Dr. {self.doctor.doctor_name} by {self.user_name}"
+
+
+class tbl_notification(models.Model):
+    user = models.ForeignKey(tbl_registration, on_delete=models.CASCADE, null=True, blank=True, related_name='notifications')
+    doctor = models.ForeignKey(tbl_doctor, on_delete=models.CASCADE, null=True, blank=True, related_name='notifications')
+    shop = models.ForeignKey(tbl_shop, on_delete=models.CASCADE, null=True, blank=True, related_name='notifications')
+    title = models.CharField(max_length=150)
+    message = models.TextField()
+    notification_type = models.CharField(max_length=50, default='info')
+    is_read = models.BooleanField(default=False, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        verbose_name = "System Notification"
+        verbose_name_plural = "System Notifications"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.title} ({self.created_at.strftime('%Y-%m-%d %H:%M')})"
+

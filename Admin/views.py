@@ -2,12 +2,16 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django.contrib import messages
 from django.views.decorators.http import require_POST
-from .models import tbl_district, tbl_adminregistration, tbl_categary, tbl_place, tbl_scategary
+from django.core.paginator import Paginator
+from .models import tbl_district, tbl_adminregistration, tbl_categary, tbl_place, tbl_scategary, tbl_audit_log
+from .audit import log_audit_event
 from Guest.models import tbl_registration, tbl_doctor, tbl_shop
-from User.models import tbl_complaints
+from User.models import tbl_complaints, tbl_booking
+from User.notifications import send_notification
 from mainproject.security import (
     admin_required, hash_password, verify_and_upgrade_password, validate_password_strength, validate_uploaded_file
 )
+
 
 
 @admin_required
@@ -231,6 +235,7 @@ def edisubcategary(request, edisubcategary):
 
 @admin_required
 def home(request):
+    """Admin operational dashboard with system metrics and audit trail."""
     stats = {
         'user_count': tbl_registration.objects.count(),
         'doctor_count': tbl_doctor.objects.count(),
@@ -238,14 +243,20 @@ def home(request):
         'pending_complaints': tbl_complaints.objects.filter(complaints_status=0).count(),
         'pending_doctors': tbl_doctor.objects.filter(doctor_status=0).count(),
         'pending_shops': tbl_shop.objects.filter(shop_status=0).count(),
+        'total_orders': tbl_booking.objects.filter(booking_status__gte=2).count(),
     }
-    return render(request, 'Admin/Home.html', {'stats': stats})
+    recent_logs = tbl_audit_log.objects.all().order_by('-created_at')[:8]
+    return render(request, 'Admin/Home.html', {'stats': stats, 'recent_logs': recent_logs})
 
 
 @admin_required
 def userlist(request):
-    users = tbl_registration.objects.all().select_related('place', 'place__district')
-    return render(request, 'Admin/UserList.html', {'user': users})
+    """View registered patient accounts with pagination."""
+    users_qs = tbl_registration.objects.all().select_related('place', 'place__district').order_by('registration_name')
+    paginator = Paginator(users_qs, 15)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'Admin/UserList.html', {'user': page_obj, 'page_obj': page_obj})
 
 
 @admin_required
@@ -266,6 +277,22 @@ def accept(request, id):
     shop = get_object_or_404(tbl_shop, id=id)
     shop.shop_status = 1
     shop.save(update_fields=['shop_status'])
+
+    send_notification(
+        title="Pharmacy Registration Approved",
+        message=f"Congratulations! Your pharmacy '{shop.shop_name}' has been verified and approved by the administration.",
+        shop=shop,
+        notification_type="system"
+    )
+
+    log_audit_event(
+        action="PHARMACY_APPROVED",
+        actor_type="Admin",
+        actor_name=request.session.get("name", "Admin"),
+        actor_id=request.session.get("aid"),
+        details=f"Approved pharmacy '{shop.shop_name}' (ID #{shop.id})."
+    )
+
     messages.success(request, f"Shop '{shop.shop_name}' approved.")
     return redirect("Admin:shoplist")
 
@@ -276,6 +303,22 @@ def reject(request, id):
     shop = get_object_or_404(tbl_shop, id=id)
     shop.shop_status = 2
     shop.save(update_fields=['shop_status'])
+
+    send_notification(
+        title="Pharmacy Registration Declined",
+        message=f"Your pharmacy registration for '{shop.shop_name}' was not approved.",
+        shop=shop,
+        notification_type="system"
+    )
+
+    log_audit_event(
+        action="PHARMACY_REJECTED",
+        actor_type="Admin",
+        actor_name=request.session.get("name", "Admin"),
+        actor_id=request.session.get("aid"),
+        details=f"Rejected pharmacy '{shop.shop_name}' (ID #{shop.id})."
+    )
+
     messages.warning(request, f"Shop '{shop.shop_name}' rejected.")
     return redirect("Admin:shoplist")
 
@@ -298,6 +341,22 @@ def acceptd(request, id):
     doctor = get_object_or_404(tbl_doctor, id=id)
     doctor.doctor_status = 1
     doctor.save(update_fields=['doctor_status'])
+
+    send_notification(
+        title="Medical Practice Approved",
+        message=f"Dr. {doctor.doctor_name}, your credentials have been verified and your practice account is now active.",
+        doctor=doctor,
+        notification_type="system"
+    )
+
+    log_audit_event(
+        action="DOCTOR_APPROVED",
+        actor_type="Admin",
+        actor_name=request.session.get("name", "Admin"),
+        actor_id=request.session.get("aid"),
+        details=f"Approved Dr. '{doctor.doctor_name}' (ID #{doctor.id})."
+    )
+
     messages.success(request, f"Dr. {doctor.doctor_name} approved.")
     return redirect("Admin:doctorlist")
 
@@ -308,6 +367,22 @@ def rejectd(request, id):
     doctor = get_object_or_404(tbl_doctor, id=id)
     doctor.doctor_status = 2
     doctor.save(update_fields=['doctor_status'])
+
+    send_notification(
+        title="Medical Practice Application Declined",
+        message=f"Dr. {doctor.doctor_name}, your registration application was not approved.",
+        doctor=doctor,
+        notification_type="system"
+    )
+
+    log_audit_event(
+        action="DOCTOR_REJECTED",
+        actor_type="Admin",
+        actor_name=request.session.get("name", "Admin"),
+        actor_id=request.session.get("aid"),
+        details=f"Rejected Dr. '{doctor.doctor_name}' (ID #{doctor.id})."
+    )
+
     messages.warning(request, f"Dr. {doctor.doctor_name} rejected.")
     return redirect("Admin:doctorlist")
 
@@ -332,6 +407,22 @@ def replaycomplaint(request, id):
             complaint.complaints_status = 1
             complaint.complaints_reply_date = timezone.now()
             complaint.save()
+
+            send_notification(
+                title="Complaint Response",
+                message=f"Administration has replied to your complaint '{complaint.complaints_subject}'.",
+                user=complaint.user,
+                notification_type="system"
+            )
+
+            log_audit_event(
+                action="COMPLAINT_REPLIED",
+                actor_type="Admin",
+                actor_name=request.session.get("name", "Admin"),
+                actor_id=request.session.get("aid"),
+                details=f"Replied to complaint #{complaint.id} ('{complaint.complaints_subject[:40]}')."
+            )
+
             messages.success(request, "Reply sent successfully.")
         return redirect("Admin:usercomplaint")
     else:

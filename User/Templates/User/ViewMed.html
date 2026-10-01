@@ -1,139 +1,234 @@
 {% extends 'User/Head.html' %}
 {% block content %}
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MedSure::Shop List</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
-            margin: 0;
-            padding: 0;
-        }
-
-        h1 {
-            text-align: center;
-            color: #333;
-            margin: 20px 0;
-        }
-
-        table {
-            width: 90%;
-            margin: 30px auto;
-            border-collapse: collapse;
-            background-color: #fff;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        table th,
-        table td {
-            padding: 15px;
-            text-align: center;
-            border: 1px solid #ddd;
-        }
-
-        table th {
-            background-color: #4c77af;
-            color: white;
-            font-size: 18px;
-        }
-
-        table tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-
-        table tr:hover {
-            background-color: #f1f1f1;
-        }
-
-        table td img {
-            width: 100px;
-            height: 100px;
-            border-radius: 5px;
-        }
-
-        a {
-            text-decoration: none;
-            padding: 10px 15px;
-            color: white;
-            background-color: #3d7cb0;
-            border-radius: 5px;
-            transition: background-color 0.3s ease;
-            margin: 5px;
-        }
-
-        a:hover {
-            background-color: #4580a0;
-        }
-
-        h2 {
-            text-align: center;
-            color: #333;
-            margin-top: 40px;
-        }
-
-        /* Mobile responsiveness */
-        @media (max-width: 768px) {
-            table {
-                width: 100%;
-            }
-
-            table th, table td {
-                padding: 10px;
-            }
-        }
-
-    </style>
-</head>
-
-<body>
-   <form action="" method="post">
-    {% csrf_token %}
-    <table>
-        <tr>
-            <td>Search: <input type="text" name="Search" id="Search"></td>
-            <td><input type="submit" value="Search"></td>
-            
-        </tr>
-    </table>
-   </form>
-    <h1>Medicine List</h1>
-    <table>
-        <tr>
-            <th>Sl.No</th>
-            <th>Photo</th>
-            <th>Name</th>
-            <th>Details</th>
-            <th>categary</th>
-            <th>Action</th>
-        </tr>
-        {% for i in med %}
-        <tr>
-            <td>{{ forloop.counter }}</td>
-            <td>{% if i.medicine_photo %}<img src="{{ i.medicine_photo.url }}" alt="Medicine Photo">{% else %}<span>No Image</span>{% endif %}</td>
-            <td>{{ i.medicine_name }}</td>
-            <td>{{ i.medicine_details }}</td>
-            <td>{{ i.category.category_name}}</td>
-            <td>
-                <form method="POST" action="{% url 'User:Addcart' i.id %}" style="display:inline;">
-                    {% csrf_token %}
-                    <button type="submit" class="request-btn" style="border:none;cursor:pointer;">Add to Cart</button>
-                </form>
-            </td>
-        </tr>
-        {% endfor %}
-    </table>
-    {%if msg %} 
-    <script>
-     alert("{{msg}}")
-    </script>
+<div class="medicore-page-container">
+  <div class="medicore-page-header d-flex justify-content-between align-items-center flex-wrap" style="gap: 15px;">
+    <div>
+      <h2 class="medicore-page-title"><i class="fas fa-pills text-primary mr-2"></i> Medicine Catalog</h2>
+      <p class="medicore-page-subtitle">Search and order genuine pharmaceuticals from licensed partner dispensaries</p>
+    </div>
+    {% if shop %}
+    <span class="medicore-badge badge-active" style="font-size: 14px; padding: 6px 14px;">
+      <i class="fas fa-store mr-1"></i> Browsing {{ shop.shop_name }}
+    </span>
     {% endif %}
-    
-</body>
+  </div>
 
-</html>
+  <!-- Advanced Search & Filter Bar -->
+  <div class="medicore-card mb-4" style="padding: 20px;">
+    <form method="GET" action="{% if shop %}{% url 'User:viewmedicine' shop.id %}{% else %}{% url 'User:search' %}{% endif %}">
+      <div class="row align-items-end" style="row-gap: 12px;">
+        <!-- Search Keyword -->
+        <div class="col-lg-4 col-md-6">
+          <label class="small text-muted font-weight-bold mb-1">Search Keywords</label>
+          <div class="input-group">
+            <div class="input-group-prepend">
+              <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+            </div>
+            <input type="text" name="q" class="form-control" placeholder="Search by name, composition..." value="{{ selected_q }}">
+          </div>
+        </div>
+
+        <!-- Category Dropdown -->
+        <div class="col-lg-2 col-md-3 col-sm-6">
+          <label class="small text-muted font-weight-bold mb-1">Therapeutic Category</label>
+          <select name="category" class="form-control custom-select">
+            <option value="">All Categories</option>
+            {% for cat in categories %}
+            <option value="{{ cat.id }}" {% if selected_category|stringformat:"s" == cat.id|stringformat:"s" %}selected{% endif %}>
+              {{ cat.category_name }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Pharmacy Filter (only when global search) -->
+        {% if shops %}
+        <div class="col-lg-2 col-md-3 col-sm-6">
+          <label class="small text-muted font-weight-bold mb-1">Dispensary</label>
+          <select name="shop" class="form-control custom-select">
+            <option value="">All Pharmacies</option>
+            {% for s in shops %}
+            <option value="{{ s.id }}" {% if selected_shop|stringformat:"s" == s.id|stringformat:"s" %}selected{% endif %}>
+              {{ s.shop_name }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        {% endif %}
+
+        <!-- Prescription Requirement -->
+        <div class="col-lg-2 col-md-3 col-sm-6">
+          <label class="small text-muted font-weight-bold mb-1">Prescription Status</label>
+          <select name="prescription" class="form-control custom-select">
+            <option value="">All Medicines</option>
+            <option value="otc" {% if selected_prescription == 'otc' %}selected{% endif %}>OTC (Over-The-Counter)</option>
+            <option value="rx" {% if selected_prescription == 'rx' %}selected{% endif %}>Rx (Prescription Required)</option>
+          </select>
+        </div>
+
+        <!-- Sort By -->
+        <div class="col-lg-2 col-md-3 col-sm-6">
+          <label class="small text-muted font-weight-bold mb-1">Sort By</label>
+          <select name="sort" class="form-control custom-select">
+            <option value="name_asc" {% if selected_sort == 'name_asc' %}selected{% endif %}>Name (A &rarr; Z)</option>
+            <option value="name_desc" {% if selected_sort == 'name_desc' %}selected{% endif %}>Name (Z &rarr; A)</option>
+            <option value="price_asc" {% if selected_sort == 'price_asc' %}selected{% endif %}>Price (Low &rarr; High)</option>
+            <option value="price_desc" {% if selected_sort == 'price_desc' %}selected{% endif %}>Price (High &rarr; Low)</option>
+          </select>
+        </div>
+
+        <!-- Action Buttons & Availability Toggle -->
+        <div class="col-12 d-flex justify-content-between align-items-center flex-wrap mt-2 pt-2 border-top" style="gap: 10px;">
+          <div class="custom-control custom-checkbox">
+            <input type="checkbox" class="custom-control-input" id="availFilter" name="availability" value="in_stock" {% if selected_availability == 'in_stock' %}checked{% endif %}>
+            <label class="custom-control-label small font-weight-bold text-dark" for="availFilter" style="cursor: pointer;">
+              Show In-Stock Medicines Only
+            </label>
+          </div>
+
+          <div class="d-flex align-items-center" style="gap: 8px;">
+            <a href="{% if shop %}{% url 'User:viewmedicine' shop.id %}{% else %}{% url 'User:search' %}{% endif %}" class="btn btn-outline-secondary btn-sm">
+              <i class="fas fa-undo mr-1"></i> Reset
+            </a>
+            <button type="submit" class="btn btn-medicore-primary btn-sm px-3">
+              <i class="fas fa-filter mr-1"></i> Apply Filters
+            </button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Results Count Bar -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <span class="text-muted small">
+      Found <strong>{{ total_count }}</strong> medicine{{ total_count|pluralize }} matching criteria
+    </span>
+    {% if page_obj.has_other_pages %}
+    <span class="text-muted small">
+      Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+    </span>
+    {% endif %}
+  </div>
+
+  <!-- Medicine Cards Grid -->
+  <div class="medicore-grid-cards">
+    {% for i in med %}
+    <div class="medicore-med-card">
+      <div class="medicore-med-img-box">
+        {% if i.medicine_photo %}
+        <img src="{{ i.medicine_photo.url }}" alt="{{ i.medicine_name }}" class="medicore-med-img">
+        {% else %}
+        <div style="font-size: 40px; color: #94a3b8;"><i class="fas fa-pills"></i></div>
+        {% endif %}
+
+        <!-- Prescription Requirement Badge Overlay -->
+        <div style="position: absolute; top: 10px; right: 10px;">
+          {% if i.medicine_status == 1 %}
+          <span class="medicore-badge badge-rx" title="Prescription upload mandatory"><i class="fas fa-prescription"></i> Rx Required</span>
+          {% else %}
+          <span class="medicore-badge badge-otc"><i class="fas fa-check"></i> OTC</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="medicore-med-body">
+        <span class="medicore-med-category">
+          <i class="fas fa-tag mr-1"></i> {{ i.category.category_name }} • <i class="fas fa-store mr-1"></i> {{ i.shop.shop_name }}
+        </span>
+
+        <h3 class="medicore-med-title">{{ i.medicine_name }}</h3>
+        <p class="text-muted" style="font-size: 13px; line-height: 1.4; margin-bottom: 12px;">
+          {{ i.medicine_details|truncatechars:90 }}
+        </p>
+
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <div class="medicore-med-price">₹{{ i.medicine_price }}</div>
+          <div>
+            {% if i.get_available_stock > 0 %}
+            <span class="badge badge-success" style="font-size: 11px;">In Stock ({{ i.get_available_stock }})</span>
+            {% else %}
+            <span class="badge badge-secondary" style="font-size: 11px;">Out of Stock</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="medicore-med-footer">
+          {% if i.get_available_stock > 0 %}
+          <form method="POST" action="{% url 'User:Addcart' i.id %}" style="width: 100%;">
+            {% csrf_token %}
+            <button type="submit" class="btn-medicore-primary btn-block text-center justify-content-center">
+              <i class="fas fa-cart-plus"></i> Add to Cart
+            </button>
+          </form>
+          {% else %}
+          <button class="btn btn-secondary btn-block" disabled style="font-size: 13px;">
+            <i class="fas fa-ban"></i> Currently Unavailable
+          </button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+      <div class="medicore-card medicore-empty-state text-center py-5">
+        <div class="medicore-empty-icon mb-3" style="font-size: 48px; color: #94a3b8;">
+          <i class="fas fa-pills"></i>
+        </div>
+        <h4 class="medicore-empty-title font-weight-bold" style="color: #334155;">No Medicines Found</h4>
+        <p class="medicore-empty-text text-muted small" style="max-width: 380px; margin: 0 auto 16px auto;">
+          No pharmaceuticals matched your search criteria. Try modifying your keywords, category, or clearing filters.
+        </p>
+        <a href="{% if shop %}{% url 'User:viewmedicine' shop.id %}{% else %}{% url 'User:search' %}{% endif %}" class="btn btn-outline-secondary btn-sm">
+          <i class="fas fa-undo mr-1"></i> Clear Filters
+        </a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Pagination Controls -->
+  {% if page_obj.has_other_pages %}
+  <div class="medicore-card mt-4 p-3 d-flex justify-content-between align-items-center flex-wrap" style="gap: 10px;">
+    <span class="text-muted small">
+      Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ total_count }} medicines
+    </span>
+    <ul class="pagination pagination-sm mb-0">
+      {% if page_obj.has_previous %}
+      <li class="page-item">
+        <a class="page-link" href="?q={{ selected_q }}&category={{ selected_category }}&shop={{ selected_shop }}&prescription={{ selected_prescription }}&availability={{ selected_availability }}&sort={{ selected_sort }}&page={{ page_obj.previous_page_number }}">
+          Previous
+        </a>
+      </li>
+      {% else %}
+      <li class="page-item disabled"><span class="page-link">Previous</span></li>
+      {% endif %}
+
+      {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        <li class="page-item">
+          <a class="page-link" href="?q={{ selected_q }}&category={{ selected_category }}&shop={{ selected_shop }}&prescription={{ selected_prescription }}&availability={{ selected_availability }}&sort={{ selected_sort }}&page={{ num }}">
+            {{ num }}
+          </a>
+        </li>
+        {% endif %}
+      {% endfor %}
+
+      {% if page_obj.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="?q={{ selected_q }}&category={{ selected_category }}&shop={{ selected_shop }}&prescription={{ selected_prescription }}&availability={{ selected_availability }}&sort={{ selected_sort }}&page={{ page_obj.next_page_number }}">
+          Next
+        </a>
+      </li>
+      {% else %}
+      <li class="page-item disabled"><span class="page-link">Next</span></li>
+      {% endif %}
+    </ul>
+  </div>
+  {% endif %}
+</div>
+
 {% endblock content %}

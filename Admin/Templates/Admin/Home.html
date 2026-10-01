@@ -188,17 +188,87 @@
                 <!-- ============================================================== -->
                 <!-- End Bread crumb and right sidebar toggle -->
                 <!-- ============================================================== -->
-                <!-- ============================================================== -->
-                <!-- Sales Chart and browser state-->
-                <!-- ============================================================== -->
-                
+                <!-- System Metrics Cards -->
+                <div class="row">
+                    <div class="col-md-3 col-sm-6">
+                        <div class="card p-3 mb-4" style="border-left: 4px solid #0284c7; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+                            <span class="text-muted small text-uppercase font-weight-bold">Registered Patients</span>
+                            <h2 class="font-weight-bold my-2" style="color: #0284c7;">{{ stats.user_count }}</h2>
+                            <a href="{% url 'Admin:userlist' %}" class="small text-primary font-weight-bold">View Patients &rarr;</a>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="card p-3 mb-4" style="border-left: 4px solid #10b981; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+                            <span class="text-muted small text-uppercase font-weight-bold">Doctors Registered</span>
+                            <h2 class="font-weight-bold my-2" style="color: #059669;">{{ stats.doctor_count }}</h2>
+                            {% if stats.pending_doctors > 0 %}
+                            <a href="{% url 'Admin:doctorlist' %}" class="badge badge-warning p-1 text-dark">{{ stats.pending_doctors }} Approval Pending</a>
+                            {% else %}
+                            <a href="{% url 'Admin:doctorlist' %}" class="small text-success font-weight-bold">All Approved &rarr;</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="card p-3 mb-4" style="border-left: 4px solid #f59e0b; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+                            <span class="text-muted small text-uppercase font-weight-bold">Pharmacies / Shops</span>
+                            <h2 class="font-weight-bold my-2" style="color: #d97706;">{{ stats.shop_count }}</h2>
+                            {% if stats.pending_shops > 0 %}
+                            <a href="{% url 'Admin:shoplist' %}" class="badge badge-warning p-1 text-dark">{{ stats.pending_shops }} Approval Pending</a>
+                            {% else %}
+                            <a href="{% url 'Admin:shoplist' %}" class="small text-warning font-weight-bold">All Verified &rarr;</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="card p-3 mb-4" style="border-left: 4px solid #ec4899; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+                            <span class="text-muted small text-uppercase font-weight-bold">Patient Grievances</span>
+                            <h2 class="font-weight-bold my-2" style="color: #db2777;">{{ stats.pending_complaints }}</h2>
+                            <a href="{% url 'Admin:usercomplaint' %}" class="small font-weight-bold" style="color: #db2777;">Review Complaints &rarr;</a>
+                        </div>
+                    </div>
                 </div>
-                <!-- ============================================================== -->
-                <!-- End Notification And Feeds -->
-                <!-- ============================================================== -->
-                <!-- ============================================================== -->
-                <!-- End Page Content -->
-                <!-- ============================================================== -->
+
+                <!-- Recent Administrative Audit Trail -->
+                <div class="card mb-4" style="border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h4 class="card-title mb-0"><i class="fa fa-history text-primary mr-2"></i> Recent Administrative Audit Trail</h4>
+                            <span class="text-muted small">Real-time governance log</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Action Event</th>
+                                        <th>Actor Type</th>
+                                        <th>Actor Name</th>
+                                        <th>Details</th>
+                                        <th>Timestamp</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for log in recent_logs %}
+                                    <tr>
+                                        <td>
+                                            <span class="badge badge-light border text-dark font-weight-bold">{{ log.action }}</span>
+                                        </td>
+                                        <td>{{ log.actor_type }}</td>
+                                        <td><strong>{{ log.actor_name }}</strong></td>
+                                        <td class="text-muted small">{{ log.details }}</td>
+                                        <td class="text-muted small">{{ log.created_at|date:"d M Y, h:i A" }}</td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="5" class="text-center py-4 text-muted">
+                                            <i class="fa fa-shield mr-1"></i> No audit events logged yet.
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
             <!-- ============================================================== -->
             <!-- End Container fluid  -->

@@ -1,233 +1,223 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MedSure :: Login</title>
+  <title>Medicore — Login</title>
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" type="text/css" href="{% static 'Main/css/bootstrap.css' %}" />
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <!-- Medicore Theme -->
+  <link rel="stylesheet" type="text/css" href="{% static 'Main/css/medicore-theme.css' %}" />
+
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Arial', sans-serif;
-    }
-
-    /* Background Video Styling */
-    .background-video {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      filter: brightness(0.4); /* Darker for better contrast */
-      z-index: -1;
-    }
-
-    /* Layout */
     body {
+      min-height: 100vh;
       display: flex;
-      justify-content: center;
       align-items: center;
-      height: 100vh;
-      flex-direction: row;
-      gap: 50px;
+      justify-content: center;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0369a1 100%);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       padding: 20px;
+      margin: 0;
     }
 
-    /* ECG Monitor */
-    .ecg-container {
-      width: 320px;
-      height: 60px;
-      overflow: hidden;
-      position: relative;
-      margin: 0 auto 20px auto;
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.15);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 5px;
+    .login-wrapper {
+      width: 100%;
+      max-width: 440px;
     }
 
-    /* ECG Line */
-    .ecg-svg {
-      width: 200%;
-      height: 50px;
-      position: absolute;
-      top: 0;
-      left: 0;
-      animation: heartbeatMove 2s linear infinite;
+    .login-card {
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+      padding: 36px 32px;
     }
 
-    @keyframes heartbeatMove {
-      from { transform: translateX(0); }
-      to { transform: translateX(-50%); }
-    }
-
-    /* Login Box with Pharmacy Image Background */
-    .login-container {
-      position: relative;
-      background-image: url("https://images.unsplash.com/photo-1603555501671-8f96b3fce8b5?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTR8fHBoYXJtYWN5fGVufDB8fDB8fHww");
-      background-size: cover;
-      background-position: center;
-      padding: 30px;
-      border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-      width: 350px;
+    .login-brand {
       text-align: center;
-      color: white;
-      overflow: hidden;
+      margin-bottom: 24px;
     }
 
-    /* Overlay for readability */
-    .login-container::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(135deg, rgba(13, 13, 13, 0.7), rgba(27, 94, 32, 0.7));
-      z-index: 0;
+    .login-brand i {
+      font-size: 38px;
+      color: #0284c7;
+      margin-bottom: 8px;
     }
 
-    /* Ensure inner elements are above the overlay */
-    .login-container * {
+    .login-brand h2 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 0;
+    }
+
+    .login-brand p {
+      font-size: 14px;
+      color: #64748b;
+      margin-top: 4px;
+    }
+
+    .form-group label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .input-icon-wrap {
       position: relative;
-      z-index: 1;
     }
 
-    .login-container h1 {
-      color: #4CAF50;
-      font-size: 22px;
-      margin-bottom: 20px;
-    }
-
-    .form-group {
-      margin-bottom: 15px;
-      text-align: left;
-    }
-
-    label {
-      font-weight: bold;
-      color: #ccc;
-      display: block;
+    .input-icon-wrap i {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
       font-size: 14px;
-      margin-bottom: 5px;
     }
 
-    input {
+    .input-icon-wrap input {
       width: 100%;
-      padding: 10px;
-      border: 1px solid #4CAF50;
-      border-radius: 6px;
+      padding: 11px 14px 11px 40px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
       font-size: 14px;
-      background: rgba(255, 255, 255, 0.1);
-      color: white;
+      color: #0f172a;
+      transition: all 0.2s ease;
+      box-sizing: border-box;
     }
 
-    input::placeholder {
-      color: #bbb;
+    .input-icon-wrap input:focus {
+      outline: none;
+      border-color: #0284c7;
+      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
     }
 
-    .login-btn {
+    .btn-login {
       width: 100%;
-      padding: 12px;
-      background: #4CAF50;
+      background-color: #0284c7;
+      color: #ffffff;
       border: none;
-      color: #fff;
-      font-size: 16px;
-      font-weight: bold;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
       cursor: pointer;
-      border-radius: 6px;
-      transition: background 0.3s ease-in-out;
-    }
-
-    .login-btn:hover {
-      background: #388E3C;
-    }
-
-    .forgot-password {
-      display: block;
+      transition: background-color 0.2s;
       margin-top: 10px;
-      font-size: 14px;
-      color: #4CAF50;
+    }
+
+    .btn-login:hover {
+      background-color: #0369a1;
+    }
+
+    .register-links {
+      text-align: center;
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid #e2e8f0;
+      font-size: 13px;
+      color: #64748b;
+    }
+
+    .register-links a {
+      color: #0284c7;
+      font-weight: 600;
       text-decoration: none;
     }
 
-    .forgot-password:hover {
+    .register-links a:hover {
       text-decoration: underline;
     }
 
-    /* Responsive */
-    @media (max-width: 768px) {
-      body {
-        flex-direction: column;
-        text-align: center;
-      }
-      .login-container {
-        width: 90%;
-      }
+    .home-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #94a3b8;
+      font-size: 13px;
+      text-decoration: none;
+      margin-bottom: 16px;
+      transition: color 0.2s;
+    }
+
+    .home-back:hover {
+      color: #ffffff;
+      text-decoration: none;
     }
   </style>
 </head>
 <body>
 
-  <!-- Background Video -->
-  <video autoplay loop muted class="background-video">
-    <source src="https://media.istockphoto.com/id/1500469862/video/4k-dna-background.mp4?s=mp4-640x640-is&k=20&c=lO-putHHss_brKVq68Mj6psb96xepp90IX1-1dPlO0k=" type="video/mp4">
-    Your browser does not support the video tag.
-  </video>
+  <div class="login-wrapper">
+    <a href="{% url 'Guest:index' %}" class="home-back">
+      <i class="fas fa-arrow-left"></i> Back to Home
+    </a>
 
-  <div class="login-section">
-    <!-- ECG Monitor -->
-    <div class="ecg-container">
-      <svg class="ecg-svg" viewBox="0 0 1000 50">
-        <polyline points="0,25 50,25 70,15 90,25 110,5 130,45 150,25 170,25 190,35 210,25 
-                           250,25 270,15 290,25 310,5 330,45 350,25 370,25 390,35 410,25 
-                           450,25 470,15 490,25 510,5 530,45 550,25 570,25 590,35 610,25 
-                           650,25 670,15 690,25 710,5 730,45 750,25 770,25 790,35 810,25 
-                           850,25 870,15 890,25 910,5 930,45 950,25 970,25 990,35 1000,25"
-                  stroke="#4CAF50" fill="none" stroke-width="2"/>
-      </svg>
-    </div>
-
-    <!-- Login Box with Pharmacy Image as Background -->
-    <div class="login-container">
-      <h1>MedSure</h1>
+    <div class="login-card">
+      <div class="login-brand">
+        <i class="fas fa-heartbeat"></i>
+        <h2>Welcome to Medicore</h2>
+        <p>Sign in to access your portal</p>
+      </div>
 
       {% if msg %}
-      <div style="background: rgba(255,0,0,0.3); border: 1px solid #ff4d4d; border-radius: 6px; padding: 10px; margin-bottom: 15px; color: #ffcccc; font-size: 14px;">
-        {{ msg }}
+      <div class="medicore-alert medicore-alert-danger">
+        <i class="fas fa-exclamation-circle"></i>
+        <span>{{ msg }}</span>
       </div>
       {% endif %}
+
       {% if messages %}
         {% for message in messages %}
-          <div style="background: rgba(255,0,0,0.3); border: 1px solid #ff4d4d; border-radius: 6px; padding: 10px; margin-bottom: 15px; color: #ffcccc; font-size: 14px;">
-            {{ message }}
-          </div>
+        <div class="medicore-alert {% if message.tags == 'error' %}medicore-alert-danger{% elif message.tags == 'success' %}medicore-alert-success{% else %}medicore-alert-warning{% endif %}">
+          <i class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% elif message.tags == 'success' %}fa-check-circle{% else %}fa-info-circle{% endif %}"></i>
+          <span>{{ message }}</span>
+        </div>
         {% endfor %}
       {% endif %}
 
       <form method="POST">
         {% csrf_token %}
 
-        <div class="form-group">
-          <label for="email">Email Address:</label>
-          <input type="email" id="email" name="email" placeholder="Enter your email" required>
+        <div class="form-group mb-3">
+          <label for="email">Email Address</label>
+          <div class="input-icon-wrap">
+            <i class="fas fa-envelope"></i>
+            <input type="email" id="email" name="email" placeholder="name@example.com" required autocomplete="email">
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="password">Password:</label>
-          <input type="password" id="password" name="password" placeholder="Enter your password" required>
+        <div class="form-group mb-4">
+          <label for="password">Password</label>
+          <div class="input-icon-wrap">
+            <i class="fas fa-lock"></i>
+            <input type="password" id="password" name="password" placeholder="Enter your password" required autocomplete="current-password">
+          </div>
         </div>
 
-        <button type="submit" class="login-btn">Login</button>
-
-        <a href="{% url 'Guest:index' %}" class="forgot-password">Sign In</a>
+        <button type="submit" class="btn-login">
+          <i class="fas fa-sign-in-alt mr-1"></i> Sign In
+        </button>
       </form>
+
+      <div class="register-links">
+        <p class="mb-2">Don't have an account yet?</p>
+        <div class="d-flex justify-content-center flex-wrap" style="gap: 12px;">
+          <a href="{% url 'Guest:registration' %}">Patient Sign Up</a>
+          <span>•</span>
+          <a href="{% url 'Guest:doctor' %}">Doctor Join</a>
+          <span>•</span>
+          <a href="{% url 'Guest:shop' %}">Pharmacy Join</a>
+        </div>
+      </div>
     </div>
   </div>
 

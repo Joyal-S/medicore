@@ -1,654 +1,267 @@
+{% extends 'User/Head.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html>
+{% block content %}
 
-<head>
-  <!-- Basic -->
-  <meta charset="utf-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <!-- Mobile Metas -->
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-  <!-- Site Metas -->
-  <meta name="keywords" content="" />
-  <meta name="description" content="" />
-  <meta name="author" content="" />
-  <link rel="shortcut icon" href="{% static 'Main/images/favicon.png' %}" type="">
-
-  <title> MedSure </title>
-
-  <!-- bootstrap core css -->
-  <link rel="stylesheet" type="text/css" href="{% static 'Main/css/bootstrap.css' %}" />
-
-  <!-- fonts style -->
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
-
-  <!--owl slider stylesheet -->
-  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css" />
-
-  <!-- font awesome style -->
-  <link href="{% static 'Main/css/font-awesome.min.css' %}" rel="stylesheet" />
-
-  <!-- Custom styles for this template -->
-  <link href="{% static 'Main/css/style.css' %}" rel="stylesheet" />
-  <!-- responsive style -->
-  <link href="{% static 'Main/css/responsive.css' %}" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-
-
-</head>
-
-<body>
-
-  <div class="hero_area">
-
-    <div class="hero_bg_box">
-      <img src="{% static 'Main/images/hero-bg.png' %}" alt="">
-    </div>
-
-    <!-- header section strats -->
-    <header class="header_section">
-      <div class="container">
-        <nav class="navbar navbar-expand-lg custom_nav-container ">
-            <a class="navbar-brand" href="{% url 'User:home' %}" style="display: flex; align-items: center; text-decoration: none; font-size: 28px; font-weight: bold; color: #2c3e50;">
-                <i class="fas fa-hospital" style="color: #3498db; font-size: 32px; margin-right: 10px;"></i>
-                <span style="color: #3498db; font-family: 'Poppins', sans-serif; transition: 0.3s;">
-                    Med<span style="color: #ffffff;">Sure</span>
-                </span>
-            </a>
-            
-            
-          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class=""> </span>
-          </button>
-
-          <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav">
-                <li class="nav-item active">
-                    <a class="nav-link" href="{% url 'User:home' %}">
-                        <i class="fas fa-home"></i> Home <span class="sr-only">(current)</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'User:myprofile' %}">
-                        <i class="fas fa-user"></i> My Profile
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'User:complaints' %}">
-                        <i class="fas fa-comment-dots"></i> Post Complaints
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'User:viewrequest' %}">
-                        <i class="fas fa-list-alt"></i> View Requests
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'User:viewdoctor' %}">
-                        <i class="fas fa-user-md"></i> View Doctors
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'User:viewshop' %}">
-                        <i class="fas fa-store"></i> View Shop
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'User:Mycart' %}">
-                        <i class="fas fa-shopping-cart"></i> MyCart
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'User:myorder' %}">
-                        <i class="fas fa-box"></i> MyOrder
-                    </a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="{% url 'User:ulogout' %}">
-                      <i class=""></i>Logout
+<!-- Hero Slider Section -->
+<section class="slider_section mb-4">
+  <div id="customCarousel1" class="carousel slide" data-ride="carousel">
+    <div class="carousel-inner">
+      <div class="carousel-item active">
+        <div class="container">
+          <div class="row">
+            <div class="col-md-8 col-lg-7">
+              <div class="detail-box py-4">
+                <h1 style="font-size: 32px; font-weight: 800; color: #0f172a; line-height: 1.2;">
+                  Complete Healthcare at Your Fingertips
+                </h1>
+                <p style="font-size: 15px; color: #475569; margin: 16px 0 24px 0;">
+                  Consult verified doctors, obtain certified digital prescriptions, and order genuine medicines from licensed pharmacies with doorstep delivery.
+                </p>
+                <div class="d-flex flex-wrap" style="gap: 12px;">
+                  <a href="{% url 'User:viewdoctor' %}" class="btn-medicore-primary px-4 py-2">
+                    <i class="fas fa-user-md"></i> Consult a Doctor
                   </a>
-              </li>
-              <form class="form-inline">
-                
-                <button class="btn  my-2 my-sm-0 nav_search-btn">
-                    <a href="{% url 'User:search' %}" class="fa fa-search" aria-hidden="true"></a>
-                </button>
-              </form>
-            </ul>
-          </div>
-        </nav>
-      </div>
-    </header>
-    <!-- end header section -->
-    <!-- slider section -->
-    <section class="slider_section ">
-      <div id="customCarousel1" class="carousel slide" data-ride="carousel">
-        <div class="carousel-inner">
-          <div class="carousel-item active">
-            <div class="container ">
-              <div class="row">
-                <div class="col-md-7">
-                  <div class="detail-box">
-                    <h1>
-                        Your Trusted Pharmacy Shopping Destination
-                      </h1>
-                      <p>
-                        Find a wide range of medicines and healthcare essentials with ease. Shop conveniently, get expert advice, and enjoy a hassle-free pharmacy experience from the comfort of your home.
-                      </p>
-                    <div class="btn-box">
-                      <a href="{% url 'User:search' %}" class="btn1">
-                        Read More
-                      </a>
-                    </div>
-                  </div>
+                  <a href="{% url 'User:search' %}" class="btn-medicore-secondary px-4 py-2">
+                    <i class="fas fa-pills"></i> Browse Medicines
+                  </a>
                 </div>
               </div>
             </div>
           </div>
-          <div class="carousel-item ">
-            <div class="container ">
-              <div class="row">
-                <div class="col-md-7">
-                  <div class="detail-box">
-                    <h1>
-                        Easy Online Prescription Requests  
-                      </h1>
-                      <p>
-                        Need a prescription? Submit your request online and connect with healthcare professionals for quick approvals. Hassle-free, secure, and convenient for your medical needs.  
-                      </p>
-                      
-                    <div class="btn-box">
-                      <a href="{% url 'User:viewdoctor' %}" class="btn1">
-                        Read More
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
         </div>
-        <ol class="carousel-indicators">
-          <li data-target="#customCarousel1" data-slide-to="0" class="active"></li>
-          <li data-target="#customCarousel1" data-slide-to="1"></li>
-          
-        </ol>
       </div>
+      <div class="carousel-item">
+        <div class="container">
+          <div class="row">
+            <div class="col-md-8 col-lg-7">
+              <div class="detail-box py-4">
+                <h1 style="font-size: 32px; font-weight: 800; color: #0f172a; line-height: 1.2;">
+                  Safe, Verified Prescription Dispensing
+                </h1>
+                <p style="font-size: 15px; color: #475569; margin: 16px 0 24px 0;">
+                  Upload doctor prescriptions securely. Our registered pharmacies verify required medical orders before packaging and swift delivery.
+                </p>
+                <div class="d-flex flex-wrap" style="gap: 12px;">
+                  <a href="{% url 'User:viewrequest' %}" class="btn-medicore-primary px-4 py-2">
+                    <i class="fas fa-file-medical"></i> My Consultations
+                  </a>
+                  <a href="{% url 'User:myorder' %}" class="btn-medicore-outline px-4 py-2">
+                    <i class="fas fa-box"></i> Track Orders
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <ol class="carousel-indicators">
+      <li data-target="#customCarousel1" data-slide-to="0" class="active"></li>
+      <li data-target="#customCarousel1" data-slide-to="1"></li>
+    </ol>
+  </div>
+</section>
 
-    </section>
-    <!-- end slider section -->
+<!-- Patient Live Health Dashboard Strip -->
+<div class="container mb-4">
+  <div class="row">
+    <div class="col-lg-3 col-sm-6 mb-3">
+      <div class="medicore-card text-center p-3 h-100" style="border-left: 4px solid #0284c7;">
+        <span class="text-muted small text-uppercase font-weight-bold">Active Consultations</span>
+        <h2 class="font-weight-bold my-2" style="color: #0284c7;">{{ pending_consultations }}</h2>
+        <a href="{% url 'User:viewrequest' %}" class="small font-weight-bold text-primary">Track Inquiries &rarr;</a>
+      </div>
+    </div>
+    <div class="col-lg-3 col-sm-6 mb-3">
+      <div class="medicore-card text-center p-3 h-100" style="border-left: 4px solid #10b981;">
+        <span class="text-muted small text-uppercase font-weight-bold">Prescriptions Issued</span>
+        <h2 class="font-weight-bold my-2" style="color: #059669;">{{ completed_consultations }}</h2>
+        <span class="text-muted small">Ready to order</span>
+      </div>
+    </div>
+    <div class="col-lg-3 col-sm-6 mb-3">
+      <div class="medicore-card text-center p-3 h-100" style="border-left: 4px solid #f59e0b;">
+        <span class="text-muted small text-uppercase font-weight-bold">Active Orders</span>
+        <h2 class="font-weight-bold my-2" style="color: #d97706;">{{ active_orders }}</h2>
+        <a href="{% url 'User:myorder' %}" class="small font-weight-bold text-warning">View Delivery &rarr;</a>
+      </div>
+    </div>
+    <div class="col-lg-3 col-sm-6 mb-3">
+      <div class="medicore-card text-center p-3 h-100" style="border-left: 4px solid #6366f1;">
+        <span class="text-muted small text-uppercase font-weight-bold">Notifications</span>
+        <h2 class="font-weight-bold my-2" style="color: #4f46e5;">{{ unread_notifications }}</h2>
+        <a href="{% url 'User:notifications' %}" class="small font-weight-bold" style="color: #4f46e5;">View Alerts &rarr;</a>
+      </div>
+    </div>
   </div>
 
-
-  <!-- department section -->
-
-  <section class="department_section layout_padding">
-    <div class="department_container">
-      <div class="container ">
-        <div class="heading_container heading_center">
-          <h2>
-            Our Top Shops
-          </h2>
-          <p>
-            Get all your healthcare essentials, medicines, and medical supplies in one place. Safe, reliable, and convenient shopping for your well-being. 
-          </p>
+  {% if recent_requests or recent_orders %}
+  <div class="row mb-4">
+    {% if recent_requests %}
+    <div class="col-lg-6 mb-3">
+      <div class="medicore-card h-100">
+        <div class="medicore-card-header d-flex justify-content-between align-items-center">
+          <h5 class="medicore-card-title mb-0" style="font-size: 15px;"><i class="fas fa-stethoscope text-primary mr-2"></i> Recent Consultations</h5>
+          <a href="{% url 'User:viewrequest' %}" class="small text-muted">View All</a>
         </div>
-        <div class="row">
-          <div class="col-md-3">
-            <div class="box ">
-              <div class="img-box">
-                <img src="{% static 'Main/images/s1.png' %}" alt="">
-              </div>
-              <div class="detail-box">
-                <h5>
-                  Cardiology
-                </h5>
-                <p>
-                    We offer a wide range of medicines, healthcare products, and medical equipment to meet your needs. With quality assurance and expert guidance, we ensure a seamless shopping experience for your well-being. Shop with confidence and convenience.
-                </p>
-              </div>
+        <div class="list-group list-group-flush">
+          {% for r in recent_requests %}
+          <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center border-bottom">
+            <div>
+              <strong style="font-size: 14px; color: #1e293b;">Dr. {{ r.dotor.doctor_name }}</strong>
+              <div class="text-muted small">{{ r.request_details|truncatechars:40 }}</div>
+            </div>
+            <div>
+              {% if r.request_status == 1 %}
+              <span class="medicore-badge badge-completed">Prescribed</span>
+              {% else %}
+              <span class="medicore-badge badge-pending">Pending</span>
+              {% endif %}
             </div>
           </div>
-          <div class="col-md-3">
-            <div class="box ">
-              <div class="img-box">
-                <img src="{% static 'Main/images/s2.png' %}" alt="">
-              </div>
-              <div class="detail-box">
-                <h5>
-                  Diagnosis
-                </h5>
-                <p>
-                    Find high-quality medicines, healthcare essentials, and medical equipment all in one place. We are committed to providing safe, reliable, and affordable products to support your health and well-being. Shop with ease and confidence today! 
-                </p>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-3">
-            <div class="box ">
-              <div class="img-box">
-                <img src="{% static 'Main/images/s3.png' %}" alt="">
-              </div>
-              <div class="detail-box">
-                <h5>
-                  Surgery
-                </h5>
-                <p>
-                    Our medical shop provides a wide range of medicines, wellness products, and healthcare essentials. With a commitment to quality and customer care, we ensure a seamless and trustworthy shopping experience for all your medical needs. 
-                </p>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-3">
-            <div class="box ">
-              <div class="img-box">
-                <img src="{% static 'Main/images/s4.png' %}" alt="">
-              </div>
-              <div class="detail-box">
-                <h5>
-                  First Aid
-                </h5>
-                <p>
-                    We provide a comprehensive selection of medicines, health supplements, and medical equipment to support your well-being. With trusted products and a customer-first approach, we make healthcare shopping simple, safe, and convenient
-                </p>
-              </div>
-            </div>
-          </div>
+          {% endfor %}
         </div>
-        <div class="btn-box">
-          <a href="{% url 'User:viewshop' %}">
-            View All
+      </div>
+    </div>
+    {% endif %}
+
+    {% if recent_orders %}
+    <div class="col-lg-6 mb-3">
+      <div class="medicore-card h-100">
+        <div class="medicore-card-header d-flex justify-content-between align-items-center">
+          <h5 class="medicore-card-title mb-0" style="font-size: 15px;"><i class="fas fa-box text-primary mr-2"></i> Recent Pharmacy Orders</h5>
+          <a href="{% url 'User:myorder' %}" class="small text-muted">View All</a>
+        </div>
+        <div class="list-group list-group-flush">
+          {% for o in recent_orders %}
+          <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center border-bottom">
+            <div>
+              <strong style="font-size: 14px; color: #1e293b;">Order #{{ o.id }} (₹{{ o.booking_amount }})</strong>
+              <div class="text-muted small">{{ o.booking_date|date:"d M Y" }}</div>
+            </div>
+            <div>
+              {% if o.booking_status == 2 %}
+              <span class="medicore-badge badge-active">Order Paid</span>
+              {% elif o.booking_status == 3 %}
+              <span class="medicore-badge badge-pending">Out for Delivery</span>
+              {% elif o.booking_status == 4 %}
+              <span class="medicore-badge badge-completed">Delivered</span>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+
+<!-- Patient Dashboard Quick Actions -->
+<div class="container mb-5">
+  <div class="medicore-page-header">
+    <h2 class="medicore-page-title">Patient Services & Quick Actions</h2>
+    <p class="medicore-page-subtitle">Select an action below to manage your health and prescriptions</p>
+  </div>
+
+  <div class="row">
+    <!-- Action 1: Doctors -->
+    <div class="col-md-6 col-lg-4 mb-4">
+      <div class="medicore-card h-100 text-center">
+        <div class="mb-3" style="font-size: 36px; color: #0284c7;">
+          <i class="fas fa-user-md"></i>
+        </div>
+        <h4 class="medicore-card-title mb-2">Find Doctors</h4>
+        <p class="text-muted" style="font-size: 14px;">Browse certified medical specialists, review credentials, check ratings, and request online consultations.</p>
+        <div class="mt-auto pt-3">
+          <a href="{% url 'User:viewdoctor' %}" class="btn-medicore-outline btn-block">
+            <i class="fas fa-search"></i> View Doctors
           </a>
         </div>
       </div>
     </div>
-  </section>
 
-  <!-- end department section -->
-
-  <!-- about section -->
-
-  <section class="about_section layout_margin-bottom">
-    <div class="container  ">
-      <div class="row">
-        <div class="col-md-6 ">
-          <div class="img-box">
-            <img src="{% static 'Main/images/about-img.jpg' %}" alt="">
-          </div>
+    <!-- Action 2: Medicines -->
+    <div class="col-md-6 col-lg-4 mb-4">
+      <div class="medicore-card h-100 text-center">
+        <div class="mb-3" style="font-size: 36px; color: #0d9488;">
+          <i class="fas fa-pills"></i>
         </div>
-        <div class="col-md-6">
-          <div class="detail-box">
-            <div class="heading_container">
-              <h2>
-                About <span>Us</span>
-              </h2>
-            </div>
-            <p>
-                MedSure is an innovative platform designed to bridge the gap between healthcare and 
-                pharmacy sales. It provides a seamless online consultation service where users can connect with 
-                doctors, receive prescriptions, and purchase medicines from registered pharmacies.
-            </p>
-            <a href="{% url 'User:search' %}">
-              Shop Now
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- end about section -->
-
-  <!-- doctor section -->
-
-  <section class="doctor_section layout_padding">
-    <div class="container">
-      <div class="heading_container heading_center">
-        <h2>
-          Our Doctors
-        </h2>
-        <p class="col-md-10 mx-auto px-0">
-            Our experienced doctors are dedicated to providing compassionate and personalized healthcare. With expert diagnosis, treatment, and guidance, we ensure the best medical care for your well-being. Book an appointment today and take a step towards better health.
-        </p>
-      </div>
-      <div class="row">
-        <div class="col-sm-6 col-lg-4 mx-auto">
-          <div class="box">
-            <div class="img-box">
-              <img src="{% static 'Main/images/d1.jpg' %}" alt="">
-            </div>
-            <div class="detail-box">
-              <div class="social_box">
-                <a href="">
-                  <i class="fa fa-facebook" aria-hidden="true"></i>
-                </a>
-                <a href="">
-                  <i class="fa fa-twitter" aria-hidden="true"></i>
-                </a>
-                <a href="">
-                  <i class="fa fa-youtube" aria-hidden="true"></i>
-                </a>
-                <a href="">
-                  <i class="fa fa-linkedin" aria-hidden="true"></i>
-                </a>
-              </div>
-              <h5>
-                Elina Josh
-              </h5>
-              <h6 class="">
-                Doctor
-              </h6>
-            </div>
-          </div>
-        </div>
-        <div class="col-sm-6 col-lg-4 mx-auto">
-          <div class="box">
-            <div class="img-box">
-              <img src="{% static 'Main/images/d2.jpg' %}" alt="">
-            </div>
-            <div class="detail-box">
-              <div class="social_box">
-                <a href="">
-                  <i class="fa fa-facebook" aria-hidden="true"></i>
-                </a>
-                <a href="">
-                  <i class="fa fa-twitter" aria-hidden="true"></i>
-                </a>
-                <a href="">
-                  <i class="fa fa-youtube" aria-hidden="true"></i>
-                </a>
-                <a href="">
-                  <i class="fa fa-linkedin" aria-hidden="true"></i>
-                </a>
-              </div>
-              <h5>
-                Adam View
-              </h5>
-              <h6 class="">
-                Doctor
-              </h6>
-            </div>
-          </div>
-        </div>
-        <div class="col-sm-6 col-lg-4 mx-auto">
-          <div class="box">
-            <div class="img-box">
-              <img src="{% static 'Main/images/d3.jpg' %}" alt="">
-            </div>
-            <div class="detail-box">
-              <div class="social_box">
-                <a href="">
-                  <i class="fa fa-facebook" aria-hidden="true"></i>
-                </a>
-                <a href="">
-                  <i class="fa fa-twitter" aria-hidden="true"></i>
-                </a>
-                <a href="">
-                  <i class="fa fa-youtube" aria-hidden="true"></i>
-                </a>
-                <a href="">
-                  <i class="fa fa-linkedin" aria-hidden="true"></i>
-                </a>
-              </div>
-              <h5>
-                Mia Mike
-              </h5>
-              <h6 class="">
-                Doctor
-              </h6>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="btn-box">
-        <a href="{% url 'User:viewdoctor' %}">
-          View All
-        </a>
-      </div>
-    </div>
-  </section>
-
-  <!-- end doctor section -->
-
-  <!-- contact section -->
-  <section class="contact_section layout_padding">
-    <div class="container">
-      <div class="heading_container">
-        <h2>
-          Get In Touch
-        </h2>
-      </div>
-      <div class="row">
-        <div class="col-md-6">
-          <div class="form_container contact-form">
-            <form action="">
-              <div class="form-row">
-                <div class="col-lg-6">
-                  <div>
-                    <input type="text" placeholder="Your Name" />
-                  </div>
-                </div>
-                <div class="col-lg-6">
-                  <div>
-                    <input type="text" placeholder="Phone Number" />
-                  </div>
-                </div>
-              </div>
-              <div>
-                <input type="email" placeholder="Email" />
-              </div>
-              <div>
-                <input type="text" class="message-box" placeholder="Message" />
-              </div>
-              <div class="btn_box">
-                <button>
-                  SEND
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="map_container">
-            <div class="map">
-              <div id="googleMap"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-  <!-- end contact section -->
-
-  <!-- client section -->
-
-  <section class="client_section layout_padding-bottom">
-    <div class="container">
-      <div class="heading_container heading_center ">
-        <h2>
-          Testimonial
-        </h2>
-      </div>
-      <div id="carouselExample2Controls" class="carousel slide" data-ride="carousel">
-        <div class="carousel-inner">
-          <div class="carousel-item active">
-            <div class="row">
-              <div class="col-md-11 col-lg-10 mx-auto">
-                <div class="box">
-                  <div class="img-box">
-                    <img src="{% static 'Main/images/client.jpg' %}" alt="" />
-                  </div>
-                  <div class="detail-box">
-                    <div class="name">
-                      <h6>
-                        Alan Emerson
-                      </h6>
-                    </div>
-                    <p>
-                      Enim consequatur odio assumenda voluptas voluptatibus esse nobis officia. Magnam, aspernatur nostrum explicabo, distinctio laudantium delectus deserunt quia quidem magni corporis earum inventore totam consectetur corrupti! Corrupti, nihil sunt? Natus.
-                    </p>
-                    <i class="fa fa-quote-left" aria-hidden="true"></i>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="carousel-item">
-            <div class="row">
-              <div class="col-md-11 col-lg-10 mx-auto">
-                <div class="box">
-                  <div class="img-box">
-                    <img src="{% static 'Main/images/client.jpg' %}" alt="" />
-                  </div>
-                  <div class="detail-box">
-                    <div class="name">
-                      <h6>
-                        Alan Emerson
-                      </h6>
-                    </div>
-                    <p>
-                      Enim consequatur odio assumenda voluptas voluptatibus esse nobis officia. Magnam, aspernatur nostrum explicabo, distinctio laudantium delectus deserunt quia quidem magni corporis earum inventore totam consectetur corrupti! Corrupti, nihil sunt? Natus.
-                    </p>
-                    <i class="fa fa-quote-left" aria-hidden="true"></i>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="carousel-item">
-            <div class="row">
-              <div class="col-md-11 col-lg-10 mx-auto">
-                <div class="box">
-                  <div class="img-box">
-                    <img src="{% static 'Main/images/client.jpg' %}" alt="" />
-                  </div>
-                  <div class="detail-box">
-                    <div class="name">
-                      <h6>
-                        Alan Emerson
-                      </h6>
-                    </div>
-                    <p>
-                      Enim consequatur odio assumenda voluptas voluptatibus esse nobis officia. Magnam, aspernatur nostrum explicabo, distinctio laudantium delectus deserunt quia quidem magni corporis earum inventore totam consectetur corrupti! Corrupti, nihil sunt? Natus.
-                    </p>
-                    <i class="fa fa-quote-left" aria-hidden="true"></i>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="carousel_btn-container">
-          <a class="carousel-control-prev" href="#carouselExample2Controls" role="button" data-slide="prev">
-            <i class="fa fa-long-arrow-left" aria-hidden="true"></i>
-            <span class="sr-only">Previous</span>
-          </a>
-          <a class="carousel-control-next" href="#carouselExample2Controls" role="button" data-slide="next">
-            <i class="fa fa-long-arrow-right" aria-hidden="true"></i>
-            <span class="sr-only">Next</span>
+        <h4 class="medicore-card-title mb-2">Medicine Catalog</h4>
+        <p class="text-muted" style="font-size: 14px;">Explore available medicines across pharmacies, verify prices, check prescription requirements, and add to cart.</p>
+        <div class="mt-auto pt-3">
+          <a href="{% url 'User:search' %}" class="btn-medicore-outline btn-block">
+            <i class="fas fa-shopping-basket"></i> Browse Medicines
           </a>
         </div>
       </div>
     </div>
-  </section>
 
-  <!-- end client section -->
-
-    <!-- footer section -->
-    <footer class="footer_section">
-      <div class="container">
-        <div class="row">
-          <div class="col-md-6 col-lg-3 footer_col">
-            <div class="footer_contact">
-              <h4>
-                Reach at..
-              </h4>
-              <div class="contact_link_box">
-                <a href="">
-                  <i class="fa fa-map-marker" aria-hidden="true"></i>
-                  <span>
-                    Location
-                  </span>
-                </a>
-                <a href="">
-                  <i class="fa fa-phone" aria-hidden="true"></i>
-                  <span>
-                    Call 
-                  </span>
-                </a>
-                <a href="">
-                  <i class="fa fa-envelope" aria-hidden="true"></i>
-                  <span>
-                   medsure@gmail.com
-                  </span>
-                </a>
-              </div>
-            </div>
-          
-          </div>
-          <div class="col-md-6 col-lg-3 footer_col">
-            <div class="footer_detail">
-              <h4>
-                About
-              </h4>
-              <p>
-                MedSure is an innovative platform designed to bridge the gap between healthcare and pharmacy sales. It provides a seamless online consultation service where users can connect with doctors, receive prescriptions, and purchase medicines from registered pharmacies
-              </p>
-            </div>
-          </div>
-          <div class="col-md-6 col-lg-2 mx-auto footer_col">
-            <div class="footer_link_box">
-              <h4>
-                Links
-              </h4>
-              <div class="footer_links">
-                <a class="active" href="{% url 'User:home' %}">
-                  Home
-                </a>
-                <a class="" href="{% url 'User:myprofile' %}">
-                  Myprofile
-                </a>
-                <a class="" href="{% url 'User:viewdoctor' %}">
-                  Doctors
-                </a>
-                <a class="" href="{% url 'User:viewshop' %}">
-                  Shop
-                </a>
-              </div>
-            </div>
-          </div>
-         
+    <!-- Action 3: Consultations -->
+    <div class="col-md-6 col-lg-4 mb-4">
+      <div class="medicore-card h-100 text-center">
+        <div class="mb-3" style="font-size: 36px; color: #6366f1;">
+          <i class="fas fa-file-prescription"></i>
         </div>
-        <div class="footer-info">
-          <p>
-            &copy; <span id="displayYear"></span> All Rights Reserved By
-            <a href="#">MedSure<br><br></a>
-             
-          </p>
-         
-        </div>  
+        <h4 class="medicore-card-title mb-2">My Consultations</h4>
+        <p class="text-muted" style="font-size: 14px;">Track submitted requests, communicate with doctors, and download approved clinical prescriptions.</p>
+        <div class="mt-auto pt-3">
+          <a href="{% url 'User:viewrequest' %}" class="btn-medicore-outline btn-block">
+            <i class="fas fa-list-alt"></i> View Consultations
+          </a>
+        </div>
       </div>
-    </footer>
-    <!-- footer section -->
-  
-    <!-- jQery -->
-    <script type="text/javascript" src="{% static 'Main/js/jquery-3.4.1.min.js' %}"></script>
-    <!-- popper js -->
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous">
-    </script>
-    <!-- bootstrap js -->
-    <script type="text/javascript" src="{% static 'Main/js/bootstrap.js' %}"></script>
-    <!-- owl slider -->
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js">
-    </script>
-    <!-- custom js -->
-    <script type="text/javascript" src="{% static 'Main/js/custom.js' %}"></script>
-    <!-- Google Map -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCh39n5U-4IoWpsVGUHWdqB6puEkhRLdmI&callback=myMap">
-    </script>
-    <!-- End Google Map -->
-  
-  </body>
-  
-  </html>
+    </div>
+
+    <!-- Action 4: Orders -->
+    <div class="col-md-6 col-lg-4 mb-4">
+      <div class="medicore-card h-100 text-center">
+        <div class="mb-3" style="font-size: 36px; color: #f59e0b;">
+          <i class="fas fa-shipping-fast"></i>
+        </div>
+        <h4 class="medicore-card-title mb-2">Orders & Delivery</h4>
+        <p class="text-muted" style="font-size: 14px;">Check the live fulfillment status of your medicine orders (Packing, Out for Delivery, Delivered).</p>
+        <div class="mt-auto pt-3">
+          <a href="{% url 'User:myorder' %}" class="btn-medicore-outline btn-block">
+            <i class="fas fa-box-open"></i> My Orders
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action 5: Cart -->
+    <div class="col-md-6 col-lg-4 mb-4">
+      <div class="medicore-card h-100 text-center">
+        <div class="mb-3" style="font-size: 36px; color: #ec4899;">
+          <i class="fas fa-shopping-cart"></i>
+        </div>
+        <h4 class="medicore-card-title mb-2">Active Cart</h4>
+        <p class="text-muted" style="font-size: 14px;">Review your selected medicines, adjust quantities, review server-calculated totals, and proceed to checkout.</p>
+        <div class="mt-auto pt-3">
+          <a href="{% url 'User:Mycart' %}" class="btn-medicore-outline btn-block">
+            <i class="fas fa-arrow-right"></i> Open Cart
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action 6: Pharmacies -->
+    <div class="col-md-6 col-lg-4 mb-4">
+      <div class="medicore-card h-100 text-center">
+        <div class="mb-3" style="font-size: 36px; color: #10b981;">
+          <i class="fas fa-store"></i>
+        </div>
+        <h4 class="medicore-card-title mb-2">Partner Pharmacies</h4>
+        <p class="text-muted" style="font-size: 14px;">View verified local pharmacies in your district with contact details and licensed catalog listings.</p>
+        <div class="mt-auto pt-3">
+          <a href="{% url 'User:viewshop' %}" class="btn-medicore-outline btn-block">
+            <i class="fas fa-map-marker-alt"></i> View Pharmacies
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock content %}

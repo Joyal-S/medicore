@@ -1,152 +1,55 @@
 {% extends 'Shop/Head.html' %}
 {% block content %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>doctor Profile</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: #f4f6f9;
-            color: #333;
-        }
 
-        .profile-container {
-            width: 400px;
-            margin: 50px auto;
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
-            padding: 30px 20px;
-        }
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-bottom text-center py-4">
+                    <div class="mb-3">
+                        {% if shop.shop_photo %}
+                        <img src="{{ shop.shop_photo.url }}" alt="{{ shop.shop_name }}" class="rounded-circle border shadow-sm" style="width: 110px; height: 110px; object-fit: cover;">
+                        {% else %}
+                        <div class="rounded-circle bg-light border d-inline-flex align-items-center justify-content-center text-primary" style="width: 110px; height: 110px;">
+                            <i class="fa fa-clinic-medical fa-3x"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <h4 class="fw-bold mb-1">{{ shop.shop_name }}</h4>
+                    <span class="badge bg-primary text-white"><i class="fa fa-store me-1"></i>Verified Pharmacy Partner</span>
+                </div>
+                <div class="card-body p-4">
+                    <div class="list-group list-group-flush mb-4">
+                        <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-3">
+                            <span class="text-muted"><i class="fa fa-envelope me-2 text-primary"></i>Email Address</span>
+                            <span class="fw-semibold text-dark">{{ shop.shop_email }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-3">
+                            <span class="text-muted"><i class="fa fa-phone me-2 text-primary"></i>Phone Number</span>
+                            <span class="fw-semibold text-dark">{{ shop.shop_contact }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-3">
+                            <span class="text-muted"><i class="fa fa-map-marker-alt me-2 text-primary"></i>Location</span>
+                            <span class="fw-semibold text-dark">{{ shop.place.place_name }}, {{ shop.place.district.district_name }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-3">
+                            <span class="text-muted"><i class="fa fa-building me-2 text-primary"></i>Physical Address</span>
+                            <span class="fw-semibold text-dark text-end" style="max-width: 60%;">{{ shop.shop_address }}</span>
+                        </div>
+                    </div>
 
-        .profile-container h1 {
-            text-align: center;
-            font-size: 28px;
-            color: #333;
-            margin-bottom: 10px;
-            font-weight: bold;
-        }
-
-        .profile-container h2 {
-            text-align: center;
-            font-size: 20px;
-            color: #7f8c8d;
-            margin-bottom: 30px;
-        }
-
-        .profile-pic {
-            width: 120px;
-            height: 120px;
-            margin: 0 auto 20px;
-            border-radius: 50%;
-            overflow: hidden;
-            border: 3px solid #ddd;
-        }
-
-        .profile-pic img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-
-        th, td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-
-        th {
-            background-color: #f7f7f7;
-            font-weight: bold;
-            color: #555;
-        }
-
-        td {
-            color: #444;
-        }
-
-        td img {
-            max-width: 80px;
-            border-radius: 8px;
-        }
-
-        .actions {
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .actions a {
-            display: inline-block;
-            margin: 0 10px;
-            text-decoration: none;
-            font-size: 16px;
-            font-weight: bold;
-            color: #4caf50;
-            padding: 8px 16px;
-            border: 1px solid #4caf50;
-            border-radius: 6px;
-            transition: all 0.3s ease;
-        }
-
-        .actions a:hover {
-            background-color: #4caf50;
-            color: white;
-        }
-    </style>
-</head>
-<body>
-    <div class="profile-container">
-        <h1>doctor Profile</h1>
-        <h2>Edit Your Information</h2>
-        <div class="profile-pic">
-            {% if shop.shop_photo %}
-                <img src="{{shop.shop_photo.url}}" alt="Profile Picture">
-            {% else %}
-                <div style="width:120px;height:120px;background:#ddd;border-radius:50%;margin:0 auto;display:flex;align-items:center;justify-content:center;">No Photo</div>
-            {% endif %}
-        </div>
-        <table>
-            <tr>
-                <th>Name</th>
-                <td>{{ shop.shop_name }}</td>
-            </tr>
-            <tr>
-                <th>Email</th>
-                <td>{{ shop.shop_email }}</td>
-            </tr>
-            <tr>
-                <th>Contact</th>
-                <td>{{ shop.shop_contact }}</td>
-            </tr>
-            <tr>
-                <th>Address</th>
-                <td>{{ shop.shop_address }}</td>
-            </tr>
-            <tr>
-                <th>District</th>
-                <td>{{ shop.place.district.district_name }}</td>
-            </tr>
-            <tr>
-                <th>Place</th>
-                <td>{{ shop.place.place_name }}</td>
-            </tr>
-        </table>
-        <div class="actions">
-            <a href="{% url 'Doctor:editprofile' %}">Edit Profile</a>
-            <a href="{% url 'Doctor:changepass' %}">Change Password</a>
+                    <div class="d-flex gap-2 justify-content-center pt-2">
+                        <a href="{% url 'Shop:editprofile' %}" class="btn btn-primary px-4 fw-semibold">
+                            <i class="fa fa-edit me-1"></i> Edit Profile
+                        </a>
+                        <a href="{% url 'Shop:changepass' %}" class="btn btn-outline-secondary px-4 fw-semibold">
+                            <i class="fa fa-key me-1"></i> Change Password
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-</body>
-</html>
+</div>
+
 {% endblock content %}

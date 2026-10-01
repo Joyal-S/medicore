@@ -139,3 +139,121 @@ class DoctorAndMLTests(TestCase):
         self.req1.refresh_from_db()
         self.assertEqual(self.req1.request_status, 0)
         self.assertFalse(tbl_prescription.objects.filter(requestpres=self.req1).exists())
+
+    def test_ml_differential_diagnosis_generation(self):
+        """ML service produces top differential diagnosis possibilities with probabilities."""
+        symptoms = ['chills', 'vomiting', 'high_fever', 'sweating', 'headache']
+        result = predict_from_symptoms(symptoms, top_k=3)
+        self.assertTrue(result['success'])
+        self.assertIn('differential_diagnosis', result)
+        self.assertGreaterEqual(len(result['differential_diagnosis']), 1)
+        for diff in result['differential_diagnosis']:
+            self.assertIn('condition', diff)
+            self.assertIn('probability', diff)
+            self.assertGreaterEqual(diff['probability'], 0.0)
+            self.assertLessEqual(diff['probability'], 100.0)
+
+    def test_ml_maximum_symptoms_bound(self):
+        """Excessive symptoms exceeding MAX_SYMPTOM_SELECTION_LIMIT are rejected with validation error."""
+        too_many = RAW_SYMPTOMS[:28]  # 28 symptoms exceeds limit of 25
+        result = predict_from_symptoms(too_many)
+        self.assertFalse(result['success'])
+        self.assertIsNone(result['predicted_disease'])
+        self.assertIn("Maximum allowed is 25", result['error'])
+
+    def test_ml_duplicate_symptoms_handling(self):
+        """Duplicate symptom entries in user input are deduplicated seamlessly."""
+        symptoms = ['itching', 'itching', 'skin_rash', 'skin_rash']
+        result = predict_from_symptoms(symptoms)
+        self.assertTrue(result['success'])
+        self.assertEqual(len(result['symptoms_selected']), 2)
+
+    def test_doctor_checkdisease_ajax_endpoint(self):
+        """Doctor checkdisease AJAX submission returns structured JSON and persists confidence."""
+        session = self.client.session
+        session['did'] = self.doctor1.id
+        session['role'] = 'doctor'
+        session.save()
+
+        response = self.client.post(
+            reverse('Doctor:checkdisease', args=[self.req1.id]),
+            data={'symptoms[]': ['itching', 'skin_rash', 'nodal_skin_eruptions']},
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data['success'])
+        self.assertIn('predicted_disease', data['data'])
+        self.assertIn('Fungal infection', data['data']['predicted_disease'])
+
+        # Verify record was stored with confidence score
+        prediction_record = tbl_disease.objects.filter(reqpre=self.req1).first()
+        self.assertIsNotNone(prediction_record)
+        self.assertEqual(prediction_record.disease_name, 'Fungal infection')
+        self.assertIsNotNone(prediction_record.confidence_score)
+        self.assertGreater(prediction_record.confidence_score, 50.0)
+
+    def test_doctor_checkdisease_ajax_validation_error(self):
+        """AJAX submission with empty symptoms returns 400 error and does not create database record."""
+        session = self.client.session
+        session['did'] = self.doctor1.id
+        session['role'] = 'doctor'
+        session.save()
+
+        initial_count = tbl_disease.objects.count()
+        response = self.client.post(
+            reverse('Doctor:checkdisease', args=[self.req1.id]),
+            data={'symptoms[]': []},
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+        )
+        self.assertEqual(response.status_code, 400)
+        data = response.json()
+        self.assertFalse(data['success'])
+        self.assertEqual(tbl_disease.objects.count(), initial_count)
+
+    def test_doctor_prescription_sends_notification_to_patient(self):
+        """When doctor issues prescription, a notification is generated for the patient."""
+        from User.models import tbl_notification
+        session = self.client.session
+        session['did'] = self.doctor1.id
+        session['role'] = 'doctor'
+        session.save()
+
+        pdf_file = SimpleUploadedFile("rx.pdf", b"%PDF-1.4 sample content", content_type="application/pdf")
+        self.client.post(reverse('Doctor:prescription', args=[self.req1.id]), {
+            'file': pdf_file
+        })
+
+        patient_notif = tbl_notification.objects.filter(user=self.user).first()
+        self.assertIsNotNone(patient_notif)
+        self.assertIn("Prescription", patient_notif.title)
+        self.assertEqual(patient_notif.notification_type, "prescription")
+
+    def test_doctor_viewrequest_pagination(self):
+        """Consultation requests list paginates cleanly across page boundaries."""
+        session = self.client.session
+        session['did'] = self.doctor1.id
+        session['role'] = 'doctor'
+        session.save()
+
+        # Create 12 additional consultation requests for doctor 1 (total 13 requests)
+        for i in range(12):
+            tbl_request.objects.create(
+                request_details=f"Patient consultation request #{i+2}",
+                user=self.user,
+                dotor=self.doctor1,
+                request_status=0
+            )
+
+        # Page 1 (10 per page)
+        res_p1 = self.client.get(reverse('Doctor:viewrequest') + '?page=1')
+        self.assertEqual(res_p1.status_code, 200)
+        self.assertEqual(len(res_p1.context['page_obj']), 10)
+        self.assertTrue(res_p1.context['page_obj'].has_next())
+
+        # Page 2 (3 items remaining)
+        res_p2 = self.client.get(reverse('Doctor:viewrequest') + '?page=2')
+        self.assertEqual(res_p2.status_code, 200)
+        self.assertEqual(len(res_p2.context['page_obj']), 3)
+        self.assertFalse(res_p2.context['page_obj'].has_next())
+

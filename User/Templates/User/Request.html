@@ -1,76 +1,56 @@
 {% extends 'User/Head.html' %}
 {% block content %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MedSure::Request</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
-            margin: 0;
-            padding: 0;
-        }
 
-        .container {
-        background: linear-gradient(135deg, #5ebdb2, #4da0b7);
-        border-radius: 12px;
-        box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
-        text-align: center;
-        color: white;
-    }
-
-        h2 {
-            margin-bottom: 20px;
-            color: #fff;
-        }
-
-        form {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        textarea {
-            width: 100%;
-            padding: 15px;
-            font-size: 16px;
-            border: none;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            resize: vertical;
-            box-sizing: border-box;
-        }
-
-        button {
-            padding: 12px 24px;
-            font-size: 16px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        button:hover {
-            background-color: #45a049;
-        }
-    </style>
-</head>
-<body>
-
-    <div class="container">
-        <h2>Enter Details</h2>
-        <form method="POST">
-            {% csrf_token %}
-            <textarea id="details" name="details" rows="4" placeholder="Enter your details here..." required></textarea>
-            <button type="submit">Submit</button>
-        </form>
+<div class="medicore-page-container" style="max-width: 680px;">
+  <div class="medicore-card">
+    <div class="medicore-page-header">
+      <div style="font-size: 38px; color: #0284c7; margin-bottom: 8px;">
+        <i class="fas fa-stethoscope"></i>
+      </div>
+      <h2 class="medicore-page-title">Consultation Request</h2>
+      <p class="medicore-page-subtitle">Submit your medical query or symptoms to the doctor</p>
     </div>
 
-</body>
-</html>
+    <!-- Doctor Summary Banner -->
+    <div class="p-3 mb-4 rounded" style="background: #f1f5f9; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 15px;">
+      <div style="width: 55px; height: 55px; border-radius: 50%; overflow: hidden; background: #cbd5e1; flex-shrink: 0;">
+        {% if doctor.doctor_photo %}
+        <img src="{{ doctor.doctor_photo.url }}" alt="{{ doctor.doctor_name }}" style="width: 100%; height: 100%; object-fit: cover;">
+        {% else %}
+        <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 22px;">
+          <i class="fas fa-user-md"></i>
+        </div>
+        {% endif %}
+      </div>
+      <div>
+        <h4 style="margin: 0; font-size: 16px; font-weight: 700; color: #0f172a;">Dr. {{ doctor.doctor_name }}</h4>
+        <p class="text-muted mb-0" style="font-size: 13px;">
+          <i class="fas fa-map-marker-alt text-danger mr-1"></i> {{ doctor.place.place_name }}, {{ doctor.place.district.district_name }}
+        </p>
+      </div>
+    </div>
+
+    <form method="POST">
+      {% csrf_token %}
+
+      <div class="medicore-form-group">
+        <label class="medicore-label" for="details">
+          <i class="fas fa-notes-medical text-primary mr-1"></i> Describe Your Symptoms & Concerns <span class="text-danger">*</span>
+        </label>
+        <textarea id="details" name="details" class="medicore-textarea" rows="5" placeholder="Please describe what you are experiencing, duration of symptoms, any ongoing medications, or specific health concerns..." required></textarea>
+        <small class="text-muted">Your consultation information is private and accessible only to Dr. {{ doctor.doctor_name }}.</small>
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center mt-4">
+        <a href="{% url 'User:viewdoctor' %}" class="btn-medicore-outline">
+          <i class="fas fa-arrow-left"></i> Back to Doctors
+        </a>
+        <button type="submit" class="btn-medicore-primary px-4 py-2">
+          <i class="fas fa-paper-plane"></i> Send Consultation Request
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
 {% endblock content %}

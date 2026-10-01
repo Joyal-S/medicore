@@ -25,7 +25,9 @@ urlpatterns = [
     path('rating/<int:mid>',views.rating,name="rating"),  
     path('ajaxstar/',views.ajaxstar,name="ajaxstar"),
     path('starrating/',views.starrating,name="starrating"),
+    path('notifications/',views.notifications,name="notifications"),
     path('ulogout/',views.ulogout, name='ulogout')
+
 
     
 ]

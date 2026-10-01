@@ -459,3 +459,165 @@ class UserOrderAndSecurityTests(TestCase):
         self.assertEqual(response.status_code, 200)
         booking.refresh_from_db()
         self.assertFalse(bool(booking.prescription))
+
+    def test_advanced_search_by_name_and_category(self):
+        """Search filters medicines by keyword query and category."""
+        session = self.client.session
+        session['uid'] = self.patient1.id
+        session['role'] = 'user'
+        session.save()
+
+        cat2 = tbl_category.objects.create(category_name="Cardio")
+        med2 = tbl_medicine.objects.create(
+            medicine_name="Aspirin Cardio",
+            medicine_price=Decimal("45.00"),
+            medicine_details="Cardio health",
+            medicine_status=0,
+            category=cat2,
+            shop=self.shop
+        )
+
+        # Search by name 'Aspirin'
+        res = self.client.get(reverse('User:search') + '?q=Aspirin')
+        self.assertEqual(res.status_code, 200)
+        med_names = [m.medicine_name for m in res.context['med']]
+        self.assertIn("Aspirin Cardio", med_names)
+        self.assertNotIn("Vitamin C", med_names)
+
+        # Search by category
+        res_cat = self.client.get(reverse('User:search') + f'?category={cat2.id}')
+        self.assertEqual(res_cat.status_code, 200)
+        med_names_cat = [m.medicine_name for m in res_cat.context['med']]
+        self.assertIn("Aspirin Cardio", med_names_cat)
+        self.assertNotIn("Vitamin C", med_names_cat)
+
+    def test_advanced_search_by_prescription_and_stock(self):
+        """Search filters medicines by prescription status and stock availability."""
+        session = self.client.session
+        session['uid'] = self.patient1.id
+        session['role'] = 'user'
+        session.save()
+
+        # Search prescription required
+        res_rx = self.client.get(reverse('User:search') + '?prescription=rx')
+        self.assertEqual(res_rx.status_code, 200)
+        for m in res_rx.context['med']:
+            self.assertEqual(m.medicine_status, 1)
+
+        # Search in stock only
+        res_stock = self.client.get(reverse('User:search') + '?availability=in_stock')
+        self.assertEqual(res_stock.status_code, 200)
+        for m in res_stock.context['med']:
+            self.assertGreater(m.get_available_stock(), 0)
+
+    def test_medicine_catalog_pagination(self):
+        """Medicine search results paginate cleanly across page boundaries."""
+        session = self.client.session
+        session['uid'] = self.patient1.id
+        session['role'] = 'user'
+        session.save()
+
+        # Create 14 additional medicines (total 16 with setUp medicines)
+        for i in range(14):
+            tbl_medicine.objects.create(
+                medicine_name=f"Med Test #{i+1:02d}",
+                medicine_price=Decimal("20.00"),
+                medicine_details="Test details",
+                medicine_status=0,
+                category=self.category,
+                shop=self.shop
+            )
+
+        # Page 1 (12 items per page)
+        res_p1 = self.client.get(reverse('User:search') + '?page=1')
+        self.assertEqual(res_p1.status_code, 200)
+        self.assertEqual(len(res_p1.context['page_obj']), 12)
+        self.assertTrue(res_p1.context['page_obj'].has_next())
+
+        # Page 2 (4 items remaining)
+        res_p2 = self.client.get(reverse('User:search') + '?page=2')
+        self.assertEqual(res_p2.status_code, 200)
+        self.assertEqual(len(res_p2.context['page_obj']), 4)
+        self.assertFalse(res_p2.context['page_obj'].has_next())
+
+    def test_patient_dashboard_statistics(self):
+        """User home dashboard correctly computes pending/completed consultations and orders."""
+        session = self.client.session
+        session['uid'] = self.patient1.id
+        session['role'] = 'user'
+        session.save()
+
+        # Create 1 pending consultation and 1 completed consultation
+        tbl_request.objects.create(
+            request_details="Headache",
+            user=self.patient1,
+            dotor=self.doctor,
+            request_status=0
+        )
+        tbl_request.objects.create(
+            request_details="Cough",
+            user=self.patient1,
+            dotor=self.doctor,
+            request_status=1
+        )
+
+        # Create 1 completed order
+        tbl_booking.objects.create(
+            user=self.patient1,
+            booking_amount=Decimal("300.00"),
+            booking_status=2
+        )
+
+        response = self.client.get(reverse('User:home'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['pending_consultations'], 1)
+        self.assertEqual(response.context['completed_consultations'], 1)
+        self.assertEqual(response.context['active_orders'], 1)
+
+    def test_notification_privacy_isolation(self):
+        """Patients can only access their own notifications, preventing unauthorized cross-user access."""
+        from User.models import tbl_notification
+        # Create notification for Patient 1
+        n1 = tbl_notification.objects.create(
+            user=self.patient1,
+            title="Notice for P1",
+            message="Private clinical update"
+        )
+        # Create notification for Patient 2
+        n2 = tbl_notification.objects.create(
+            user=self.patient2,
+            title="Notice for P2",
+            message="Private clinical update for P2"
+        )
+
+        # Patient 1 logs in
+        session = self.client.session
+        session['uid'] = self.patient1.id
+        session['role'] = 'user'
+        session.save()
+
+        response = self.client.get(reverse('User:notifications'))
+        self.assertEqual(response.status_code, 200)
+        notif_titles = [n.title for n in response.context['notifications']]
+        self.assertIn("Notice for P1", notif_titles)
+        self.assertNotIn("Notice for P2", notif_titles)
+
+    def test_notification_mark_all_read(self):
+        """Patient can mark all their unread notifications as read via POST."""
+        from User.models import tbl_notification
+        tbl_notification.objects.create(
+            user=self.patient1,
+            title="Notice 1",
+            message="Msg 1",
+            is_read=False
+        )
+
+        session = self.client.session
+        session['uid'] = self.patient1.id
+        session['role'] = 'user'
+        session.save()
+
+        res = self.client.post(reverse('User:notifications'))
+        self.assertRedirects(res, reverse('User:notifications'))
+        self.assertEqual(tbl_notification.objects.filter(user=self.patient1, is_read=False).count(), 0)
+

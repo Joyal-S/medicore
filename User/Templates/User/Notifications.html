@@ -1,0 +1,87 @@
+{% extends 'User/Head.html' %}
+{% block content %}
+
+<div class="medicore-page-container">
+  <div class="medicore-page-header d-flex justify-content-between align-items-center flex-wrap" style="gap: 15px;">
+    <div>
+      <h2 class="medicore-page-title"><i class="fas fa-bell text-primary mr-2"></i> Patient Notifications</h2>
+      <p class="medicore-page-subtitle">Real-time alerts regarding your consultations, prescriptions, and pharmacy orders</p>
+    </div>
+    <div>
+      {% if unread_count > 0 %}
+      <form method="POST" style="display: inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-secondary btn-sm">
+          <i class="fas fa-check-double mr-1"></i> Mark All as Read
+        </button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="medicore-card">
+    <div class="list-group list-group-flush">
+      {% for n in notifications %}
+      <div class="list-group-item p-3 d-flex align-items-start" style="{% if not n.is_read %}background-color: #f0fdf4; border-left: 4px solid #10b981;{% else %}background-color: #ffffff;{% endif %}">
+        <div class="mr-3 mt-1">
+          {% if n.notification_type == 'prescription' %}
+          <div style="width: 36px; height: 36px; border-radius: 50%; background: #dbeafe; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-file-prescription"></i>
+          </div>
+          {% elif n.notification_type == 'order' %}
+          <div style="width: 36px; height: 36px; border-radius: 50%; background: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-box"></i>
+          </div>
+          {% else %}
+          <div style="width: 36px; height: 36px; border-radius: 50%; background: #e2e8f0; color: #475569; display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-info-circle"></i>
+          </div>
+          {% endif %}
+        </div>
+        <div class="flex-grow-1">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <h6 class="mb-0 font-weight-bold" style="color: #0f172a; font-size: 15px;">{{ n.title }}</h6>
+            <small class="text-muted">{{ n.created_at|timesince }} ago</small>
+          </div>
+          <p class="mb-0 text-muted" style="font-size: 13px;">{{ n.message }}</p>
+        </div>
+      </div>
+      {% empty %}
+      <div class="medicore-empty-state py-5 text-center">
+        <div class="medicore-empty-icon text-muted mb-3" style="font-size: 40px;">
+          <i class="fas fa-bell-slash"></i>
+        </div>
+        <h5 class="medicore-empty-title">No Notifications Yet</h5>
+        <p class="medicore-empty-text text-muted small">You will receive updates here whenever doctors issue prescriptions or pharmacies process your medicine orders.</p>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <div class="d-flex justify-content-between align-items-center p-3 border-top flex-wrap" style="gap: 10px;">
+      <span class="text-muted small">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+      <ul class="pagination pagination-sm mb-0">
+        {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link">Previous</span></li>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+          {% if page_obj.number == num %}
+          <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+          {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+          <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+          {% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link">Next</span></li>
+        {% endif %}
+      </ul>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock content %}

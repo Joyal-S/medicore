@@ -1,219 +1,147 @@
 {% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-  <!-- Basic -->
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <!-- Mobile Metas -->
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-  <!-- Site Metas -->
-  <meta name="keywords" content="" />
-  <meta name="description" content="" />
-  <meta name="author" content="" />
-  <link rel="shortcut icon" href="{% static 'Main/images/favicon.png' %}" type="">
+  <title>Medicore — Patient Portal</title>
 
-  <title> MedSure </title>
-
-  <!-- bootstrap core css -->
+  <!-- Bootstrap CSS -->
   <link rel="stylesheet" type="text/css" href="{% static 'Main/css/bootstrap.css' %}" />
-
-  <!-- fonts style -->
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
-
-  <!--owl slider stylesheet -->
-  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css" />
-
-  <!-- font awesome style -->
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome -->
   <link href="{% static 'Main/css/font-awesome.min.css' %}" rel="stylesheet" />
-
-  <!-- Custom styles for this template -->
-  <link href="{% static 'Main/css/style.css' %}" rel="stylesheet" />
-  <!-- responsive style -->
-  <link href="{% static 'Main/css/responsive.css' %}" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-
-
+  <!-- Template CSS -->
+  <link href="{% static 'Main/css/style.css' %}" rel="stylesheet" />
+  <link href="{% static 'Main/css/responsive.css' %}" rel="stylesheet" />
+  <!-- Medicore Unified Theme -->
+  <link href="{% static 'Main/css/medicore-theme.css' %}" rel="stylesheet" />
 </head>
 
 <body>
-
   <div class="hero_area">
-
     <div class="hero_bg_box">
-      <img src="{% static 'Main/images/hero-bg.png' %}" alt="">
+      <img src="{% static 'Main/images/hero-bg.png' %}" alt="Healthcare background">
     </div>
 
-    <!-- header section strats -->
+    <!-- Header Section -->
     <header class="header_section">
-      <div class="container">
-        <nav class="navbar navbar-expand-lg custom_nav-container ">
-            <a class="navbar-brand" href="{% url 'User:home' %}" style="display: flex; align-items: center; text-decoration: none; font-size: 28px; font-weight: bold; color: #2c3e50;">
-                <i class="fas fa-hospital" style="color: #3498db; font-size: 32px; margin-right: 10px;"></i>
-                <span style="color: #3498db; font-family: 'Poppins', sans-serif; transition: 0.3s;">
-                    Med<span style="color: #ffffff;">Sure</span>
-                </span>
-            </a>
-            
-            
+      <div class="container-fluid px-lg-5">
+        <nav class="navbar navbar-expand-lg custom_nav-container">
+          <a class="navbar-brand" href="{% url 'User:home' %}" style="display:flex;align-items:center;text-decoration:none;font-size:26px;font-weight:700;">
+            <i class="fas fa-heartbeat" style="color:#0284c7;font-size:30px;margin-right:10px;"></i>
+            <span style="color:#0284c7;">Medi<span style="color:#ffffff;">core</span></span>
+          </a>
+
           <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class=""> </span>
+            <span class="fa fa-bars" style="color:#fff;"></span>
           </button>
 
           <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav">
-                <li class="nav-item active">
-                    <a class="nav-link" href="{% url 'User:home' %}">
-                        <i class="fas fa-home"></i> Home <span class="sr-only">(current)</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'User:myprofile' %}">
-                        <i class="fas fa-user"></i> My Profile
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'User:complaints' %}">
-                        <i class="fas fa-comment-dots"></i> Post Complaints
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'User:viewrequest' %}">
-                        <i class="fas fa-list-alt"></i> View Requests
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'User:viewdoctor' %}">
-                        <i class="fas fa-user-md"></i> View Doctors
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'User:viewshop' %}">
-                        <i class="fas fa-store"></i> View Shop
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'User:Mycart' %}">
-                        <i class="fas fa-shopping-cart"></i> MyCart
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'User:myorder' %}">
-                        <i class="fas fa-box"></i> MyOrder
-                    </a>
-                </li>
-              <form class="form-inline">
-                
-                <button class="btn  my-2 my-sm-0 nav_search-btn">
-                    <a href="{% url 'User:search' %}" class="fa fa-search" aria-hidden="true"></a>
-                </button>
-              </form>
+            <ul class="navbar-nav ml-auto align-items-lg-center">
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'User:home' %}"><i class="fas fa-home"></i> Home</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'User:viewdoctor' %}"><i class="fas fa-user-md"></i> Doctors</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'User:search' %}"><i class="fas fa-pills"></i> Medicines</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'User:viewrequest' %}"><i class="fas fa-file-medical"></i> Consultations</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'User:viewshop' %}"><i class="fas fa-store"></i> Pharmacies</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'User:myorder' %}"><i class="fas fa-box"></i> Orders</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'User:Mycart' %}"><i class="fas fa-shopping-cart"></i> Cart</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'User:myprofile' %}"><i class="fas fa-user-circle"></i> Profile</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'User:notifications' %}"><i class="fas fa-bell"></i> Alerts</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'User:complaints' %}"><i class="fas fa-comment-alt"></i> Complaints</a>
+              </li>
+              <li class="nav-item ml-lg-2">
+                <a class="nav-link btn-medicore-danger text-white px-3 py-1" href="{% url 'User:ulogout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+              </li>
             </ul>
           </div>
         </nav>
       </div>
     </header>
-    <!-- end header section -->
-{% block content %}
-{% endblock content %}
 
-
-
-    <!-- footer section -->
-  <footer class="footer_section">
-    <div class="container">
-      <div class="row">
-        <div class="col-md-6 col-lg-3 footer_col">
-          <div class="footer_contact">
-            <h4>
-              Reach at..
-            </h4>
-            <div class="contact_link_box">
-              <a href="">
-                <i class="fa fa-map-marker" aria-hidden="true"></i>
-                <span>
-                  Location
-                </span>
-              </a>
-              <a href="">
-                <i class="fa fa-phone" aria-hidden="true"></i>
-                <span>
-                  Call 
-                </span>
-              </a>
-              <a href="">
-                <i class="fa fa-envelope" aria-hidden="true"></i>
-                <span>
-                 medsure@gmail.com
-                </span>
-              </a>
-            </div>
-          </div>
-        
-        </div>
-        <div class="col-md-6 col-lg-3 footer_col">
-          <div class="footer_detail">
-            <h4>
-              About
-            </h4>
-            <p>
-              MedSure is an innovative platform designed to bridge the gap between healthcare and pharmacy sales. It provides a seamless online consultation service where users can connect with doctors, receive prescriptions, and purchase medicines from registered pharmacies
-            </p>
-          </div>
-        </div>
-        <div class="col-md-6 col-lg-2 mx-auto footer_col">
-          <div class="footer_link_box">
-            <h4>
-              Links
-            </h4>
-            <div class="footer_links">
-              <a class="active" href="{% url 'User:home' %}">
-                Home
-              </a>
-              <a class="" href="{% url 'User:myprofile' %}">
-                Myprofile
-              </a>
-              <a class="" href="{% url 'User:viewdoctor' %}">
-                Doctors
-              </a>
-              <a class="" href="{% url 'User:viewshop' %}">
-                Shop
-              </a>
-            </div>
-          </div>
-        </div>
-       
+    <!-- Global Messages Container -->
+    {% if messages %}
+    <div class="container mt-3">
+      {% for message in messages %}
+      <div class="medicore-alert {% if message.tags == 'error' %}medicore-alert-danger{% elif message.tags == 'warning' %}medicore-alert-warning{% elif message.tags == 'success' %}medicore-alert-success{% else %}medicore-alert-info{% endif %}" role="alert">
+        <i class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% elif message.tags == 'warning' %}fa-exclamation-triangle{% elif message.tags == 'success' %}fa-check-circle{% else %}fa-info-circle{% endif %}"></i>
+        <span>{{ message }}</span>
       </div>
-      <div class="footer-info">
-        <p>
-          &copy; <span id="displayYear"></span> All Rights Reserved By
-          <a href="#">MedSure<br><br></a>
-           
-        </p>
-       
-      </div>  
+      {% endfor %}
     </div>
-  </footer>
-  <!-- footer section -->
+    {% endif %}
 
-  <!-- jQery -->
+    {% block content %}
+    {% endblock content %}
+
+    <!-- Footer Section -->
+    <footer class="footer_section mt-5">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-6 col-lg-4 footer_col">
+            <div class="footer_contact">
+              <h4>Contact Medicore</h4>
+              <div class="contact_link_box">
+                <a href="#"><i class="fa fa-map-marker" aria-hidden="true"></i> <span>Healthcare Tech Park, Kerala</span></a>
+                <a href="#"><i class="fa fa-phone" aria-hidden="true"></i> <span>+91 98765 43210</span></a>
+                <a href="#"><i class="fa fa-envelope" aria-hidden="true"></i> <span>support@medicore.healthcare</span></a>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-5 footer_col">
+            <div class="footer_detail">
+              <h4>About Medicore</h4>
+              <p>
+                Medicore is an integrated healthcare platform seamlessly connecting patients, verified doctors, and licensed pharmacies for consultations, secure digital prescriptions, and medicine home deliveries.
+              </p>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-3 mx-auto footer_col">
+            <div class="footer_link_box">
+              <h4>Quick Links</h4>
+              <div class="footer_links">
+                <a href="{% url 'User:home' %}">Dashboard</a>
+                <a href="{% url 'User:viewdoctor' %}">Consult Doctors</a>
+                <a href="{% url 'User:search' %}">Search Medicines</a>
+                <a href="{% url 'User:myorder' %}">My Orders</a>
+                <a href="{% url 'User:ulogout' %}">Logout</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="footer-info text-center mt-4">
+          <p>&copy; {% now "Y" %} Medicore Healthcare Platform. All Rights Reserved.</p>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Scripts -->
   <script type="text/javascript" src="{% static 'Main/js/jquery-3.4.1.min.js' %}"></script>
-  <!-- popper js -->
-  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous">
-  </script>
-  <!-- bootstrap js -->
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
   <script type="text/javascript" src="{% static 'Main/js/bootstrap.js' %}"></script>
-  <!-- owl slider -->
-  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js">
-  </script>
-  <!-- custom js -->
-  <script type="text/javascript" src="{% static 'Main/js/custom.js' %}"></script>
-  <!-- Google Map -->
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCh39n5U-4IoWpsVGUHWdqB6puEkhRLdmI&callback=myMap">
-  </script>
-  <!-- End Google Map -->
-
 </body>
-
 </html>

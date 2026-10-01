@@ -1,118 +1,139 @@
 {% extends 'Shop/Head.html' %}
 {% block content %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MedSure::User Bookings</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
-            margin: 0;
-            padding: 0;
-        }
-        h1 {
-            text-align: center;
-            color: #2c3e50;
-            margin-bottom: 20px;
-        }
-        table {
-            width: 90%;
-            margin: auto;
-            border-collapse: collapse;
-            background: #fff;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        th, td {
-            padding: 12px;
-            text-align: center;
-            border-bottom: 1px solid #ddd;
-        }
-        th {
-            background-color: #3498db;
-            color: white;
-        }
-        tr:hover {
-            background-color: #f1f1f1;
-        }
-        img {
-            border-radius: 8px;
-        }
-        .no-orders {
-            text-align: center;
-            color: #e74c3c;
-            font-size: 18px;
-            padding: 20px;
-        }
-        .status-btn {
-            text-decoration: none;
-            padding: 8px 12px;
-            border-radius: 5px;
-            color: white;
-            margin: 5px;
-            display: inline-block;
-        }
-        .packing-btn {
-            background-color: #f39c12;
-        }
-        .delivery-btn {
-            background-color: #27ae60;
-        }
-    </style>
-</head>
-<body>
 
-    <h1>User Bookings</h1>
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="fa fa-shopping-bag text-primary me-2"></i>Customer Orders</h2>
+            <p class="text-muted mb-0">Manage customer bookings, dispatch packing, and mark fulfillment.</p>
+        </div>
+    </div>
 
-    <table>
-        <tr>
-            <th>Sl.No</th>
-            <th>Photo</th>
-            <th>Medicine Name</th>
-            <th>Amount</th>
-            <th>User</th>
-            <th>Address</th>
-            <th>Date of Order</th>
-            <th>Action</th>
-        </tr>
-        {% for order in booking %}
-            {% for cart_item in order.tbl_cart_set.all %}
-            <tr>
-                <td>{{ forloop.parentloop.counter }}</td>
-                <td>{% if cart_item.medicine.medicine_photo %}<img src="{{ cart_item.medicine.medicine_photo.url }}" alt="Medicine Photo" width="80">{% else %}<span>No Image</span>{% endif %}</td>
-                <td>{{ cart_item.medicine.medicine_name }}</td>
-                <td><strong>₹{{ order.booking_amount }}</strong></td>
-                <td>{{ order.user.registration_name }}</td>
-                <td>{{ order.user.registration_address }}</td>
-                <td>{{ order.booking_date|date:"d M Y, h:i A" }}</td>
-                <td>
-                    {% if order.booking_status == 2 %}
-                        <form method="POST" action="{% url 'Shop:packing' order.id %}" style="display:inline;">
-                            {% csrf_token %}
-                            <button type="submit" class="status-btn packing-btn" style="border:none;cursor:pointer;">Packing</button>
-                        </form>
-                    {% elif order.booking_status == 3 %}
-                        <form method="POST" action="{% url 'Shop:delivery' order.id %}" style="display:inline;">
-                            {% csrf_token %}
-                            <button type="submit" class="status-btn delivery-btn" style="border:none;cursor:pointer;">Deliver</button>
-                        </form>
-                    {% else %}
-                        <span>Completed</span>
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        {% empty %}
-        <tr>
-            <td colspan="8" class="no-orders">No orders found</td>
-        </tr>
-        {% endfor %}
-    </table>
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">Order #</th>
+                            <th>Medicine Items</th>
+                            <th>Customer & Delivery Address</th>
+                            <th>Order Date</th>
+                            <th class="text-end">Order Total</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-center pe-4">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in booking %}
+                        <tr>
+                            <td class="ps-4 fw-bold">#{{ order.id }}</td>
+                            <td>
+                                <div class="d-flex flex-column gap-2">
+                                    {% for cart_item in order.tbl_cart_set.all %}
+                                    <div class="d-flex align-items-center gap-2">
+                                        {% if cart_item.medicine.medicine_photo %}
+                                        <img src="{{ cart_item.medicine.medicine_photo.url }}" alt="{{ cart_item.medicine.medicine_name }}" class="rounded border" style="width: 42px; height: 42px; object-fit: cover;">
+                                        {% else %}
+                                        <div class="bg-light rounded border d-flex align-items-center justify-content-center text-muted" style="width: 42px; height: 42px;">
+                                            <i class="fa fa-medkit"></i>
+                                        </div>
+                                        {% endif %}
+                                        <div>
+                                            <div class="fw-semibold text-dark">{{ cart_item.medicine.medicine_name }}</div>
+                                            <small class="text-muted">Qty: {{ cart_item.cart_quantity }} &bull; ₹{{ cart_item.medicine.medicine_price }} each</small>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="fw-semibold text-dark">{{ order.user.registration_name }}</div>
+                                <div class="text-muted small"><i class="fa fa-map-marker-alt me-1 text-danger"></i>{{ order.user.registration_address }}</div>
+                                <div class="text-muted small"><i class="fa fa-phone me-1"></i>{{ order.user.registration_contact }}</div>
+                            </td>
+                            <td>
+                                <span class="text-secondary small">{{ order.booking_date|date:"d M Y, h:i A" }}</span>
+                            </td>
+                            <td class="text-end fw-bold text-primary fs-6">
+                                ₹{{ order.booking_amount }}
+                            </td>
+                            <td class="text-center">
+                                {% if order.booking_status == 2 %}
+                                <span class="badge bg-warning text-dark"><i class="fa fa-clock me-1"></i>Pending Packing</span>
+                                {% elif order.booking_status == 3 %}
+                                <span class="badge bg-info text-dark"><i class="fa fa-box me-1"></i>Packing in Progress</span>
+                                {% elif order.booking_status == 4 %}
+                                <span class="badge bg-success"><i class="fa fa-check-circle me-1"></i>Delivered</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Status: {{ order.booking_status }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center pe-4">
+                                {% if order.booking_status == 2 %}
+                                <form method="POST" action="{% url 'Shop:packing' order.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-warning text-dark fw-semibold shadow-sm">
+                                        <i class="fa fa-box me-1"></i> Mark Packing
+                                    </button>
+                                </form>
+                                {% elif order.booking_status == 3 %}
+                                <form method="POST" action="{% url 'Shop:delivery' order.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-success fw-semibold shadow-sm">
+                                        <i class="fa fa-truck me-1"></i> Mark Delivered
+                                    </button>
+                                </form>
+                                {% else %}
+                                <span class="text-muted small"><i class="fa fa-check text-success me-1"></i>Fulfilled</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5">
+                                <div class="text-muted">
+                                    <i class="fa fa-clipboard-list fa-3x mb-3 text-secondary opacity-50"></i>
+                                    <h5>No Customer Orders Found</h5>
+                                    <p class="small mb-0">When patients purchase medicines from your catalog, orders will appear here for packing and dispatch.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
 
-</body>
-</html>
+            {% if page_obj.has_other_pages %}
+            <div class="d-flex justify-content-between align-items-center p-3 border-top flex-wrap" style="gap: 10px;">
+              <span class="text-muted small">
+                Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ page_obj.paginator.count }} total orders)
+              </span>
+              <ul class="pagination pagination-sm mb-0">
+                {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+                {% else %}
+                <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                  {% if page_obj.number == num %}
+                  <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                  {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                  <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                  {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+                {% else %}
+                <li class="page-item disabled"><span class="page-link">Next</span></li>
+                {% endif %}
+              </ul>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
 {% endblock content %}

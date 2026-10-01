@@ -1,236 +1,478 @@
-<!-- User/Checkdisease.html -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Check Disease</title>
-    <style>
-        .container {
-            display: flex;
-            height: 100vh;
-            padding: 20px;
-            background-color: #d6d6d6;
-        }
-        
-        .left-panel {
-            width: 70%;
-            padding: 20px;
-            overflow-y: auto;
-        }
-        .right-panel {
-            width: 30%;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .symptoms-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-        }
-        .symptom-box {
-            flex: 0 0 calc(20% - 10px);
-            /* flex: 0 0 calc(33.33% - 10px);  */
-            background-color: rgb(255, 255, 255);
-            border: 3px solid #0066ff;
-            border-radius: 5px;
-            padding: 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            transition: all 0.2s ease;
-        }
-        .symptom-box:hover {
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-            transform: translateY(-2px);
-        }
-        .symptom-box input {
-            margin-right: 5px;
-        }
-        .symptom-box label {
-            font-size: 14px;
-            cursor: pointer;
-        }
-        .result-box {
-            margin-top: 20px;
-            padding: 20px;
-            background-color: rgb(37, 94, 133);
-            border: 5px solid #ffffff;
-            border-radius: 5px;
-            width: 80%;
-            text-align: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .submit-btn {
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        .submit-btn:hover {
-            background-color: #45a049;
-        }
-        h2 {
-            color: #333;
-            margin-bottom: 20px;
-        }
-        .result-box h3 {
-            color: #2c3e50;
-            margin-bottom: 10px;
-        }
-        .result-box p {
-            color: #666;
-        }
-        text{
-            color: whitesmoke;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <!-- Left Panel: Symptom Selection -->
-        <div class="left-panel">
-            <h2>Select Symptoms</h2>
-            <form method="POST" action="">
-                {% csrf_token %}
-                <div class="symptoms-grid">
-                    {% for symptom_value, symptom_name in symptomslist %}
-                        <div class="symptom-box">
-                            <input type="checkbox" 
-                                   name="symptoms[]" 
-                                   value="{{ symptom_value }}"
-                                   id="symptom_{{ symptom_value }}">
-                            <label for="symptom_{{ symptom_value }}" style="color: #000000; font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;">{{ symptom_name }}</label>
-                        </div>
-                    {% endfor %}
-                </div>
-                <button type="submit" class="submit-btn">Check Disease</button>
-            </form>
+{% extends 'Doctor/Head.html' %}
+{% block content %}
+
+<div class="medicore-page-container">
+  <div class="medicore-page-header d-flex justify-content-between align-items-center flex-wrap" style="gap: 15px;">
+    <div>
+      <h2 class="medicore-page-title"><i class="fas fa-brain text-primary mr-2"></i> Clinical Symptom Decision Support</h2>
+      <p class="medicore-page-subtitle">Algorithmic diagnostic suggestion tool for consulting medical practitioners (v1.0.0)</p>
+    </div>
+    <div>
+      <a href="{% url 'Doctor:viewrequest' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="fas fa-arrow-left mr-1"></i> Back to Consultations
+      </a>
+      {% if request_obj %}
+      <a href="{% url 'Doctor:prescription' request_obj.id %}" class="btn btn-medicore-primary btn-sm ml-2">
+        <i class="fas fa-file-prescription mr-1"></i> Issue Prescription
+      </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Patient Context Banner -->
+  {% if request_obj %}
+  <div class="medicore-card mb-4" style="background: #f8fafc; border-left: 4px solid var(--medicore-primary); padding: 14px 20px;">
+    <div class="row align-items-center">
+      <div class="col-md-4">
+        <span class="text-muted small text-uppercase font-weight-bold">Patient Name</span>
+        <h5 class="mb-0 font-weight-bold" style="color: #1e293b;">{{ request_obj.user.registration_name }}</h5>
+      </div>
+      <div class="col-md-5">
+        <span class="text-muted small text-uppercase font-weight-bold">Consultation Complaint</span>
+        <p class="mb-0 text-truncate" style="font-size: 14px; color: #334155;">{{ request_obj.request_details }}</p>
+      </div>
+      <div class="col-md-3 text-md-right">
+        <span class="medicore-badge {% if request_obj.request_status == 1 %}badge-completed{% else %}badge-pending{% endif %}">
+          {% if request_obj.request_status == 1 %}Prescribed{% else %}Pending Consultation{% endif %}
+        </span>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Live Alert Box for AJAX messages -->
+  <div id="mlAlertBox" style="display: none;" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <span id="mlAlertMessage"></span>
+    <button type="button" class="close" onclick="$('#mlAlertBox').hide();">
+      <span>&times;</span>
+    </button>
+  </div>
+
+  <div class="row">
+    <!-- Left Column: Categorized & Searchable Symptom Catalog -->
+    <div class="col-lg-7 mb-4">
+      <div class="medicore-card h-100">
+        <div class="medicore-card-header d-flex justify-content-between align-items-center flex-wrap" style="gap: 10px;">
+          <div>
+            <h4 class="medicore-card-title mb-0"><i class="fas fa-list-check mr-2 text-primary"></i> Select Clinical Symptoms</h4>
+            <span class="text-muted small">Select 1 to 25 verified clinical indicators</span>
+          </div>
+          <span class="medicore-badge badge-active" id="selected-counter">0 Selected</span>
         </div>
 
-        <!-- Right Panel: Results -->
-        <div class="right-panel" id="diagnosis-panel">
-            <h2>Diagnosis Result</h2>
-            {% if predicted_disease %}
-                <div class="result-box">
-                    <h4>Selected Symptoms:</h4>
-                    <ul>
-                        {% for symptom in symptoms_selected %}
-                            <li>{{ symptom }}</li>
-                        {% endfor %}
-                    </ul>
-                    <h3>Predicted Disease: <h1 style="color: red;">{{ predicted_disease }}</h1></h3>
-                    <p>Confidence Score: {{ confidence_score }}%</p>
-                    {% if disclaimer %}
-                    <div style="margin-top: 15px; padding: 10px; background: rgba(0,0,0,0.2); border: 1px solid #ffd700; border-radius: 4px; font-size: 12px; color: #fff; text-align: left;">
-                        <strong style="color: #ffd700;">Clinical Advisory:</strong> {{ disclaimer }}
-                    </div>
-                    {% endif %}
-                </div>
-                <button onclick="downloadPDF()">Download as PDF</button>
-            {% else %}
-                <div class="result-box">
-                    <p>Please select symptoms and click "Check Disease" to see results.</p>
-                </div>
+        <!-- Selected Symptoms Chips Bar -->
+        <div id="selectedChipsBar" class="p-2 mb-3 bg-light rounded" style="display: none; border: 1px dashed #cbd5e1;">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="text-muted small font-weight-bold">Active Selection:</span>
+            <button type="button" class="btn btn-link btn-sm text-danger p-0" id="deselectAll" style="font-size: 12px; text-decoration: none;">
+              <i class="fas fa-trash-alt mr-1"></i> Clear All
+            </button>
+          </div>
+          <div class="d-flex flex-wrap" id="selectedChipsContainer" style="gap: 6px;"></div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="symptom-search-bar mb-3">
+          <div class="input-group">
+            <div class="input-group-prepend">
+              <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+            </div>
+            <input type="text" id="symptomSearch" class="form-control" placeholder="Search 131 symptoms (e.g. fever, headache, cough, rash)..." autocomplete="off">
+            <div class="input-group-append">
+              <button type="button" class="btn btn-outline-secondary btn-sm" id="clearSearch">Clear</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Clinical Body System Filter Tabs -->
+        <div class="mb-3">
+          <div class="d-flex flex-wrap" style="gap: 6px;" id="categoryFilterButtons">
+            <button type="button" class="btn btn-sm btn-primary active cat-filter-btn" data-cat="all">All Systems</button>
+            {% for cat in categorized_symptoms %}
+            <button type="button" class="btn btn-sm btn-outline-secondary cat-filter-btn" data-cat="{{ cat.name|slugify }}">
+              {{ cat.name }}
+            </button>
+            {% endfor %}
+          </div>
+        </div>
+
+        <form method="POST" id="symptomForm">
+          {% csrf_token %}
+
+          <!-- Symptom Items Container grouped by category -->
+          <div class="symptom-catalog-box mb-3" style="max-height: 480px; overflow-y: auto; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px;">
+            {% for cat in categorized_symptoms %}
+            <div class="cat-section mb-3" data-cat-slug="{{ cat.name|slugify }}">
+              <div class="cat-header py-1 mb-2 font-weight-bold text-muted border-bottom" style="font-size: 12px; letter-spacing: 0.5px; text-transform: uppercase;">
+                <i class="fas fa-folder-open mr-1 text-primary"></i> {{ cat.name }} ({{ cat.symptoms|length }})
+              </div>
+              <div class="d-flex flex-wrap" style="gap: 6px;">
+                {% for raw_name, display_label in cat.symptoms %}
+                <label class="symptom-checkbox-label" data-symptom-name="{{ display_label|lower }}" data-cat-slug="{{ cat.name|slugify }}">
+                  <input type="checkbox" name="symptoms[]" value="{{ raw_name }}" class="symptom-checkbox"
+                         data-label="{{ display_label }}"
+                         {% if display_label in symptoms_selected %}checked{% endif %}>
+                  <span>{{ display_label }}</span>
+                </label>
+                {% endfor %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+            <span class="text-muted small" id="selectionStatusHint">Select at least 1 symptom to proceed</span>
+            <button type="submit" class="btn-medicore-primary px-4 py-2" id="submitBtn">
+              <i class="fas fa-microscope mr-1"></i> Analyze Symptoms
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Right Column: Decision Support Result & History -->
+    <div class="col-lg-5 mb-4">
+      <div class="medicore-card h-100 d-flex flex-column">
+        <div class="medicore-card-header d-flex justify-content-between align-items-center">
+          <h4 class="medicore-card-title mb-0"><i class="fas fa-chart-line mr-2 text-primary"></i> Decision Support Result</h4>
+          <span class="text-muted small">v1.0.0</span>
+        </div>
+
+        <div id="resultContainer" class="flex-grow-1">
+          {% if predicted_disease %}
+          <!-- Primary Prediction Card -->
+          <div class="p-3 mb-3 rounded" style="background: #f0fdf4; border: 1px solid #bbf7d0;">
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="text-muted" style="font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">
+                Decision-Support Result
+              </span>
+              <span class="medicore-badge badge-completed">{{ confidence_score }}% Confidence</span>
+            </div>
+            <h3 style="font-size: 22px; font-weight: 800; color: #15803d; margin: 8px 0 4px 0;" id="predictedDiseaseTitle">
+              {{ predicted_disease }}
+            </h3>
+            <p class="text-muted small mb-0">Possible condition based on statistical evaluation of selected symptoms.</p>
+          </div>
+
+          <!-- Top Differential Diagnoses -->
+          {% if differential_diagnosis %}
+          <div class="mb-3 p-3 rounded" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+            <h6 style="font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 8px;">
+              <i class="fas fa-layer-group text-primary mr-1"></i> Differential Suggestions
+            </h6>
+            <div class="list-group list-group-flush" id="differentialsList">
+              {% for diff in differential_diagnosis %}
+              <div class="d-flex justify-content-between align-items-center py-1">
+                <span style="font-size: 13px; color: #1e293b;">{{ diff.condition }}</span>
+                <span class="badge {% if forloop.first %}badge-success{% else %}badge-light{% endif %}" style="font-size: 12px; font-weight: 600;">
+                  {{ diff.probability }}%
+                </span>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Evaluated Symptoms -->
+          <div class="mb-3">
+            <h6 style="font-size: 13px; font-weight: 700; color: #475569; margin-bottom: 6px;">Evaluated Clinical Symptoms:</h6>
+            <div class="d-flex flex-wrap" style="gap: 5px;" id="evaluatedSymptomsList">
+              {% for s in symptoms_selected %}
+              <span class="badge badge-light p-2" style="border: 1px solid #cbd5e1; font-size: 12px;">{{ s }}</span>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- Mandatory Medical Disclaimer -->
+          <div class="p-3 rounded mb-3" style="background: #fffbeb; border: 1px solid #fde68a; font-size: 12px; color: #92400e; line-height: 1.5;">
+            <div class="d-flex">
+              <i class="fas fa-exclamation-triangle mr-2 mt-1" style="font-size: 14px;"></i>
+              <div>
+                <strong>Medical Decision-Support Notice:</strong>
+                <p class="mb-0 mt-1">{{ disclaimer }}</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex flex-column" style="gap: 8px;">
+            {% if request_obj %}
+            <a href="{% url 'Doctor:prescription' request_obj.id %}" class="btn-medicore-primary btn-block justify-content-center py-2 text-center">
+              <i class="fas fa-file-prescription mr-1"></i> Proceed to Prescribe
+            </a>
             {% endif %}
+            <button type="button" class="btn btn-outline-secondary btn-block btn-sm" id="resetEvaluationBtn">
+              <i class="fas fa-redo mr-1"></i> Start Another Evaluation
+            </button>
+          </div>
+
+          {% else %}
+          <!-- Empty State -->
+          <div class="medicore-empty-state py-5 text-center" id="emptyStatePlaceholder">
+            <div class="medicore-empty-icon text-muted mb-3" style="font-size: 48px; color: #94a3b8;">
+              <i class="fas fa-microscope"></i>
+            </div>
+            <h5 class="medicore-empty-title font-weight-bold" style="color: #334155;">Awaiting Symptom Input</h5>
+            <p class="medicore-empty-text text-muted small" style="max-width: 320px; margin: 0 auto;">
+              Select one or more patient symptoms from the catalog on the left and click "Analyze Symptoms" to evaluate differential clinical indicators.
+            </p>
+          </div>
+          {% endif %}
         </div>
-        
-        <!-- Include html2pdf.js Library -->
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-        
-       <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-{{ symptoms_selected|json_script:"symptoms-data" }}
+        <!-- Consultation Decision-Support History -->
+        {% if past_evaluations %}
+        <div class="mt-4 pt-3 border-top">
+          <h6 style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
+            <i class="fas fa-history mr-1"></i> Previous Evaluations For This Consultation
+          </h6>
+          <div class="table-responsive" style="max-height: 160px; overflow-y: auto;">
+            <table class="table table-sm table-borderless small mb-0" style="font-size: 12px;">
+              <thead class="text-muted border-bottom">
+                <tr>
+                  <th>Prediction</th>
+                  <th>Confidence</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for ev in past_evaluations %}
+                <tr>
+                  <td class="font-weight-bold text-dark">{{ ev.disease_name }}</td>
+                  <td>
+                    {% if ev.confidence_score %}
+                    <span class="badge badge-light border">{{ ev.confidence_score }}%</span>
+                    {% else %}
+                    <span class="text-muted">—</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-muted">{{ ev.prediction_date|date:"d M H:i" }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
 
+<!-- Interactive Search, Tabs, Chip Management, and AJAX Script -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script>
-function downloadPDF() {
+  $(document).ready(function() {
+    var activeCategory = 'all';
 
-    let element = document.createElement("div");
-    let date = new Date().toLocaleString();
+    function updateCounterAndChips() {
+      var checkedBoxes = $('.symptom-checkbox:checked');
+      var count = checkedBoxes.length;
 
-    let disease = "{{ predicted_disease|default:'Not Available'|escapejs }}";
-    let confidence = "{{ confidence_score|default:'N/A'|escapejs }}";
+      $('#selected-counter').text(count + ' Selected');
+      if (count === 0) {
+        $('#selectionStatusHint').text('Select at least 1 symptom to proceed');
+        $('#selectedChipsBar').hide();
+      } else {
+        $('#selectionStatusHint').text(count + ' symptom' + (count > 1 ? 's' : '') + ' selected');
+        $('#selectedChipsBar').show();
+      }
 
-    // Read JSON safely
-    let symptomsList = JSON.parse(
-        document.getElementById('symptoms-data').textContent
-    );
+      // Render chips
+      var chipsHtml = '';
+      checkedBoxes.each(function() {
+        var label = $(this).attr('data-label') || $(this).val();
+        var val = $(this).val();
+        chipsHtml += '<span class="badge badge-primary py-1 px-2 d-inline-flex align-items-center" style="font-size: 12px; gap: 5px;">' +
+                     label +
+                     ' <i class="fas fa-times-circle remove-chip" data-val="' + val + '" style="cursor: pointer;"></i>' +
+                     '</span>';
+      });
+      $('#selectedChipsContainer').html(chipsHtml);
+    }
 
-    let content = `
-    <div style="font-family:Arial,sans-serif;padding:20px;text-align:center;">
+    updateCounterAndChips();
 
-        <h2 style="color:#007bff;">
-            Medical Diagnosis Report
-        </h2>
+    // Checkbox state change
+    $(document).on('change', '.symptom-checkbox', function() {
+      updateCounterAndChips();
+    });
 
-        <p>
-            <strong>Date:</strong> ${date}
-        </p>
+    // Remove chip click
+    $(document).on('click', '.remove-chip', function() {
+      var val = $(this).attr('data-val');
+      $('.symptom-checkbox[value="' + val + '"]').prop('checked', false);
+      updateCounterAndChips();
+    });
 
-        <hr>
+    // Real-time search filter
+    function applyFilters() {
+      var query = $('#symptomSearch').val().toLowerCase().trim();
 
-        <h3>Selected Symptoms:</h3>
+      $('.cat-section').each(function() {
+        var catSlug = $(this).attr('data-cat-slug');
+        var catMatches = (activeCategory === 'all' || activeCategory === catSlug);
 
-        <p>
-            ${symptomsList.length > 0
-            ? symptomsList.join(", ")
-            : "No symptoms selected"}
-        </p>
-
-        <hr>
-
-        <h3>Predicted Disease:</h3>
-
-        <h2 style="color:red;">
-            ${disease}
-        </h2>
-
-        <h3>Confidence Score:</h3>
-
-        <p>
-            <strong>${confidence}%</strong>
-        </p>
-
-        <hr>
-
-        <p style="font-size:12px;color:#666;">
-            Note: This is a preliminary prediction.
-            Please consult a medical professional.
-        </p>
-
-    </div>
-    `;
-
-    element.innerHTML = content;
-
-    html2pdf()
-    .set({
-        margin:10,
-        filename:'Diagnosis_Report.pdf',
-        image:{
-            type:'jpeg',
-            quality:0.98
-        },
-        html2canvas:{
-            scale:2
-        },
-        jsPDF:{
-            unit:'mm',
-            format:'a4',
-            orientation:'portrait'
+        if (!catMatches) {
+          $(this).hide();
+          return;
         }
-    })
-    .from(element)
-    .save();
-}
+
+        var visibleCount = 0;
+        $(this).find('.symptom-checkbox-label').each(function() {
+          var name = $(this).attr('data-symptom-name');
+          if (query === '' || name.indexOf(query) !== -1) {
+            $(this).show();
+            visibleCount++;
+          } else {
+            $(this).hide();
+          }
+        });
+
+        if (visibleCount > 0) {
+          $(this).show();
+        } else {
+          $(this).hide();
+        }
+      });
+    }
+
+    $('#symptomSearch').on('keyup', function() {
+      applyFilters();
+    });
+
+    $('#clearSearch').click(function() {
+      $('#symptomSearch').val('');
+      applyFilters();
+    });
+
+    // Category button filter
+    $('.cat-filter-btn').click(function() {
+      $('.cat-filter-btn').removeClass('btn-primary active').addClass('btn-outline-secondary');
+      $(this).removeClass('btn-outline-secondary').addClass('btn-primary active');
+      activeCategory = $(this).attr('data-cat');
+      applyFilters();
+    });
+
+    // Deselect all
+    $('#deselectAll, #resetEvaluationBtn').click(function() {
+      $('.symptom-checkbox').prop('checked', false);
+      updateCounterAndChips();
+    });
+
+    // AJAX form submission with loading state
+    $('#symptomForm').submit(function(e) {
+      e.preventDefault();
+      var checkedBoxes = $('.symptom-checkbox:checked');
+      if (checkedBoxes.length === 0) {
+        $('#mlAlertMessage').text("Please select at least one clinical symptom before analyzing.");
+        $('#mlAlertBox').show();
+        return false;
+      }
+
+      if (checkedBoxes.length > 25) {
+        $('#mlAlertMessage').text("Too many symptoms selected. Maximum allowed is 25.");
+        $('#mlAlertBox').show();
+        return false;
+      }
+
+      $('#mlAlertBox').hide();
+      var submitBtn = $('#submitBtn');
+      submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Analyzing Symptoms...');
+
+      var symptoms = [];
+      checkedBoxes.each(function() {
+        symptoms.push($(this).val());
+      });
+
+      var csrfToken = $('input[name="csrfmiddlewaretoken"]').val();
+
+      $.ajax({
+        url: window.location.href,
+        type: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRFToken': csrfToken
+        },
+        data: $('#symptomForm').serialize(),
+        dataType: 'json',
+        success: function(resp) {
+          submitBtn.prop('disabled', false).html('<i class="fas fa-microscope mr-1"></i> Analyze Symptoms');
+          if (resp.success && resp.data) {
+            renderResult(resp.data);
+          } else {
+            $('#mlAlertMessage').text(resp.message || "An error occurred.");
+            $('#mlAlertBox').show();
+          }
+        },
+        error: function(xhr) {
+          submitBtn.prop('disabled', false).html('<i class="fas fa-microscope mr-1"></i> Analyze Symptoms');
+          var errMsg = "Unable to evaluate symptoms. Please check server connection.";
+          if (xhr.responseJSON && xhr.responseJSON.message) {
+            errMsg = xhr.responseJSON.message;
+          }
+          $('#mlAlertMessage').text(errMsg);
+          $('#mlAlertBox').show();
+        }
+      });
+    });
+
+    function renderResult(data) {
+      var container = $('#resultContainer');
+      var diffHtml = '';
+      if (data.differential_diagnosis && data.differential_diagnosis.length > 0) {
+        diffHtml = '<div class="mb-3 p-3 rounded" style="background: #f8fafc; border: 1px solid #e2e8f0;">' +
+                   '<h6 style="font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 8px;">' +
+                   '<i class="fas fa-layer-group text-primary mr-1"></i> Differential Suggestions</h6>' +
+                   '<div class="list-group list-group-flush">';
+        data.differential_diagnosis.forEach(function(diff, idx) {
+          var badgeClass = idx === 0 ? 'badge-success' : 'badge-light';
+          diffHtml += '<div class="d-flex justify-content-between align-items-center py-1">' +
+                      '<span style="font-size: 13px; color: #1e293b;">' + diff.condition + '</span>' +
+                      '<span class="badge ' + badgeClass + '" style="font-size: 12px; font-weight: 600;">' + diff.probability + '%</span>' +
+                      '</div>';
+        });
+        diffHtml += '</div></div>';
+      }
+
+      var symHtml = '';
+      if (data.symptoms_selected) {
+        data.symptoms_selected.forEach(function(s) {
+          symHtml += '<span class="badge badge-light p-2" style="border: 1px solid #cbd5e1; font-size: 12px; margin-right: 5px; margin-bottom: 5px;">' + s + '</span>';
+        });
+      }
+
+      var prescriptionLink = "{% if request_obj %}{% url 'Doctor:prescription' request_obj.id %}{% else %}#{% endif %}";
+      var prescribeBtn = '';
+      {% if request_obj %}
+      prescribeBtn = '<a href="' + prescriptionLink + '" class="btn-medicore-primary btn-block justify-content-center py-2 text-center">' +
+                     '<i class="fas fa-file-prescription mr-1"></i> Proceed to Prescribe</a>';
+      {% endif %}
+
+      var html = '<div class="p-3 mb-3 rounded" style="background: #f0fdf4; border: 1px solid #bbf7d0;">' +
+                 '<div class="d-flex justify-content-between align-items-center">' +
+                 '<span class="text-muted" style="font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Decision-Support Result</span>' +
+                 '<span class="medicore-badge badge-completed">' + data.confidence_score + '% Confidence</span>' +
+                 '</div>' +
+                 '<h3 style="font-size: 22px; font-weight: 800; color: #15803d; margin: 8px 0 4px 0;">' + data.predicted_disease + '</h3>' +
+                 '<p class="text-muted small mb-0">Possible condition based on statistical evaluation of selected symptoms.</p>' +
+                 '</div>' +
+                 diffHtml +
+                 '<div class="mb-3">' +
+                 '<h6 style="font-size: 13px; font-weight: 700; color: #475569; margin-bottom: 6px;">Evaluated Clinical Symptoms:</h6>' +
+                 '<div class="d-flex flex-wrap" style="gap: 5px;">' + symHtml + '</div>' +
+                 '</div>' +
+                 '<div class="p-3 rounded mb-3" style="background: #fffbeb; border: 1px solid #fde68a; font-size: 12px; color: #92400e; line-height: 1.5;">' +
+                 '<div class="d-flex"><i class="fas fa-exclamation-triangle mr-2 mt-1" style="font-size: 14px;"></i>' +
+                 '<div><strong>Medical Decision-Support Notice:</strong><p class="mb-0 mt-1">' + data.disclaimer + '</p></div>' +
+                 '</div></div>' +
+                 '<div class="d-flex flex-column" style="gap: 8px;">' +
+                 prescribeBtn +
+                 '<button type="button" class="btn btn-outline-secondary btn-block btn-sm" id="resetEvaluationBtn">' +
+                 '<i class="fas fa-redo mr-1"></i> Start Another Evaluation</button></div>';
+
+      container.html(html);
+    }
+  });
 </script>
-        
-        
-        
-    </div>
-</body>
-</html>
+
+{% endblock content %}

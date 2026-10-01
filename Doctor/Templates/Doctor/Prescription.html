@@ -1,74 +1,55 @@
 {% extends 'Doctor/Head.html' %}
 {% block content %}
 
-<style>
-    /* Container styling */
-    .upload-container {
-        max-width: 450px;
-        margin: 50px auto;
-        padding: 25px;
-        background: linear-gradient(135deg, #65bbf5, #80c7e0);
-        border-radius: 12px;
-        box-shadow: 0px 5px 15px rgba(48, 245, 189, 0.2);
-        text-align: center;
-        color: white;
-    }
+<div class="medicore-page-container" style="max-width: 600px;">
+  <div class="medicore-card">
+    <div class="medicore-page-header">
+      <div style="font-size: 38px; color: #0284c7; margin-bottom: 8px;">
+        <i class="fas fa-file-prescription"></i>
+      </div>
+      <h2 class="medicore-page-title">Issue Digital Prescription</h2>
+      <p class="medicore-page-subtitle">Upload the signed clinical prescription for the patient</p>
+    </div>
 
-    /* Title styling */
-    .upload-container h2 {
-        font-size: 24px;
-        font-weight: bold;
-        margin-bottom: 20px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
+    <!-- Patient Consultation Summary -->
+    <div class="p-3 mb-4 rounded" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+      <div class="d-flex justify-content-between mb-2">
+        <span class="text-muted">Patient:</span>
+        <strong style="color: #0f172a;">{{ request.user.registration_name }}</strong>
+      </div>
+      <div class="d-flex justify-content-between mb-2">
+        <span class="text-muted">Request Date:</span>
+        <span>{{ request.request_date|date:"d M Y, h:i A" }}</span>
+      </div>
+      <div class="mb-0">
+        <span class="text-muted d-block mb-1">Reported Symptoms:</span>
+        <div class="p-2 rounded bg-white text-dark border" style="font-size: 13px;">
+          {{ request.request_details }}
+        </div>
+      </div>
+    </div>
 
-    /* File input styling */
-    .upload-container input[type="file"] {
-        width: 100%;
-        padding: 12px;
-        border: 2px dashed white;
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 8px;
-        color: white;
-        cursor: pointer;
-        transition: background 0.3s, border-color 0.3s;
-    }
-
-    .upload-container input[type="file"]:hover {
-        background: rgba(173, 92, 92, 0.3);
-        border-color: #fff;
-    }
-
-    /* Button styling */
-    .upload-container button {
-        display: block;
-        width: 100%;
-        margin-top: 20px;
-        background-color: #476e95;
-        color: white;
-        padding: 12px;
-        font-size: 16px;
-        font-weight: bold;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: background 0.3s;
-    }
-
-    .upload-container button:hover {
-        background-color: #1a252f;
-    }
-</style>
-
-<div class="upload-container">
-    <h2>Upload Prescription</h2>
     <form method="POST" enctype="multipart/form-data">
-        {% csrf_token %}
-        <input type="file" id="file" name="file" required>
-        <button type="submit">Submit</button>
+      {% csrf_token %}
+
+      <div class="medicore-form-group">
+        <label class="medicore-label" for="file">
+          <i class="fas fa-upload text-primary mr-1"></i> Select Prescription File (PDF or Image) <span class="text-danger">*</span>
+        </label>
+        <input type="file" id="file" name="file" class="medicore-input" accept="image/*,.pdf" required>
+        <small class="text-muted">Supported formats: PDF, JPG, PNG, WEBP (Max 10 MB)</small>
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center mt-4">
+        <a href="{% url 'Doctor:viewrequest' %}" class="btn-medicore-outline">
+          <i class="fas fa-arrow-left"></i> Back to Requests
+        </a>
+        <button type="submit" class="btn-medicore-primary px-4 py-2">
+          <i class="fas fa-check-circle mr-1"></i> Upload & Complete Consultation
+        </button>
+      </div>
     </form>
+  </div>
 </div>
 
 {% endblock content %}
-

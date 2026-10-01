@@ -1,71 +1,63 @@
 {% extends 'Shop/Head.html' %}
 {% block content %}
 
-<style>
-    /* Container Styling */
-    .container {
-        background: linear-gradient(135deg, #3db68c, #4f96cd);
-        border-radius: 12px;
-        box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
-        text-align: center;
-        color: white;
-    }
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-5 col-md-6 mb-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="mb-0 fw-bold"><i class="fa fa-folder-plus text-primary me-2"></i>Add Medicine Category</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="category_name" class="form-label fw-semibold">Category Name <span class="text-danger">*</span></label>
+                            <input type="text" id="category_name" name="category" class="form-control" placeholder="e.g. Antibiotics, Pain Relievers" required autofocus>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 fw-semibold">
+                            <i class="fa fa-plus-circle me-1"></i> Add Category
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
 
-    /* Form Title */
-    .container h2 {
-        font-size: 24px;
-        font-weight: bold;
-        margin-bottom: 15px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-
-    /* Input Field */
-    .container input {
-        width: 100%;
-        padding: 12px;
-        margin-top: 10px;
-        border-radius: 6px;
-        border: none;
-        outline: none;
-        font-size: 16px;
-        background: rgba(255, 255, 255, 0.9);
-        transition: 0.3s ease-in-out;
-        text-align: center;
-    }
-
-    .container input:focus {
-        background: white;
-        box-shadow: 0px 0px 8px rgba(255, 255, 255, 0.5);
-    }
-
-    /* Button Styling */
-    .container button {
-        margin-top: 15px;
-        padding: 12px 20px;
-        font-size: 16px;
-        font-weight: bold;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        background-color: #5db080;
-        color: white;
-        transition: background 0.3s ease-in-out;
-    }
-
-    .container button:hover {
-        background-color: #1c9230;
-    }
-
-</style>
-
-<div class="container">
-    <h2>Enter Category</h2>
-    <form method="POST">
-        {% csrf_token %}
-        <input type="text" name="category" placeholder="Enter category name" required>
-        <button type="submit">Submit</button>
-    </form>
+        <div class="col-lg-7 col-md-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="mb-0 fw-bold"><i class="fa fa-list text-primary me-2"></i>Existing Categories</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-3" style="width: 70px;">#</th>
+                                    <th>Category Name</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for cat in category %}
+                                <tr>
+                                    <td class="ps-3 text-muted">{{ forloop.counter }}</td>
+                                    <td class="fw-semibold text-dark">{{ cat.category_name }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="2" class="text-center py-4 text-muted">
+                                        <i class="fa fa-tags fa-2x mb-2 text-secondary opacity-50"></i>
+                                        <div>No categories registered yet.</div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 {% endblock content %}
