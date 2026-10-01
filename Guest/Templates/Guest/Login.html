@@ -4,222 +4,921 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Medicore — Login</title>
-  <!-- Bootstrap CSS -->
-  <link rel="stylesheet" type="text/css" href="{% static 'Main/css/bootstrap.css' %}" />
-  <!-- Google Fonts -->
+  <title>Sign In — Medicore Healthcare</title>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-  <!-- Medicore Theme -->
-  <link rel="stylesheet" type="text/css" href="{% static 'Main/css/medicore-theme.css' %}" />
 
   <style>
+    :root {
+      --primary: #0284c7;
+      --primary-hover: #0369a1;
+      --primary-dark: #075985;
+      --primary-light: #e0f2fe;
+      --teal: #0d9488;
+      --navy-950: #050b14;
+      --navy-900: #0a1120;
+      --navy-800: #0f1c30;
+      --navy-700: #1a2a44;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --text-light: #94a3b8;
+      --border-color: #e2e8f0;
+      --border-focus: #38bdf8;
+      --radius-card: 22px;
+      --radius-input: 10px;
+      --radius-btn: 10px;
+      --radius-tile: 12px;
+      --shadow-card: 0 20px 40px -15px rgba(2, 20, 40, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.8) inset, 0 2px 4px rgba(0, 0, 0, 0.04);
+      --shadow-btn: 0 4px 14px -2px rgba(2, 132, 199, 0.4);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
       min-height: 100vh;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--navy-950);
+      background-image: 
+        radial-gradient(circle at 50% 15%, rgba(2, 132, 199, 0.18) 0%, transparent 55%),
+        radial-gradient(circle at 85% 75%, rgba(13, 148, 136, 0.14) 0%, transparent 45%),
+        radial-gradient(circle at 15% 85%, rgba(30, 58, 138, 0.2) 0%, transparent 50%),
+        linear-gradient(145deg, #060b13 0%, #0c1728 50%, #0a192f 100%);
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0369a1 100%);
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      padding: 20px;
-      margin: 0;
+      padding: 28px 16px;
+      position: relative;
+      overflow-x: hidden;
+      color: var(--text-main);
+      -webkit-font-smoothing: antialiased;
     }
 
-    .login-wrapper {
+    /* Abstract subtle medical background decorations */
+    .bg-decorations {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .bg-decorations svg {
+      position: absolute;
+      opacity: 0.035;
+      fill: none;
+      stroke: #38bdf8;
+    }
+
+    .decor-cross-1 {
+      top: 12%;
+      left: 8%;
+      width: 80px;
+      height: 80px;
+    }
+
+    .decor-cross-2 {
+      bottom: 15%;
+      right: 10%;
+      width: 110px;
+      height: 110px;
+    }
+
+    .decor-pulse {
+      top: 48%;
+      right: -5%;
+      width: 380px;
+      height: 140px;
+    }
+
+    .decor-circle {
+      bottom: 8%;
+      left: 12%;
+      width: 160px;
+      height: 160px;
+    }
+
+    /* Central Layout Container */
+    .login-container {
+      position: relative;
+      z-index: 1;
       width: 100%;
-      max-width: 440px;
+      max-width: 470px;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      animation: cardEntrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
+    @keyframes cardEntrance {
+      from {
+        opacity: 0;
+        transform: translateY(18px) scale(0.985);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    /* Back to Home Link */
+    .home-navigation {
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: flex-start;
+    }
+
+    .btn-back-home {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 9999px;
+      color: #cbd5e1;
+      font-size: 13px;
+      font-weight: 500;
+      text-decoration: none;
+      backdrop-filter: blur(8px);
+      transition: all 0.2s ease;
+    }
+
+    .btn-back-home i {
+      font-size: 12px;
+      transition: transform 0.2s ease;
+    }
+
+    .btn-back-home:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+      text-decoration: none;
+    }
+
+    .btn-back-home:hover i {
+      transform: translateX(-3px);
+    }
+
+    /* Radial glow wrapper around card */
+    .card-glow-wrap {
+      position: relative;
+    }
+
+    .card-glow-wrap::before {
+      content: "";
+      position: absolute;
+      top: -15px;
+      left: -15px;
+      right: -15px;
+      bottom: -15px;
+      border-radius: 30px;
+      background: radial-gradient(circle at 50% 25%, rgba(2, 132, 199, 0.22) 0%, rgba(13, 148, 136, 0.1) 60%, transparent 80%);
+      filter: blur(20px);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    /* Main Login Card */
     .login-card {
       background: #ffffff;
-      border-radius: 16px;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
-      padding: 36px 32px;
+      border-radius: var(--radius-card);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      box-shadow: var(--shadow-card);
+      padding: 38px 36px 32px 36px;
+      position: relative;
+      overflow: hidden;
     }
 
-    .login-brand {
+    /* Subtle top accent bar */
+    .login-card::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #0284c7 0%, #0d9488 50%, #38bdf8 100%);
+    }
+
+    /* Branding Section */
+    .brand-section {
+      text-align: center;
+      margin-bottom: 22px;
+    }
+
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+
+    .brand-icon-box {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #0284c7 0%, #0d9488 100%);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 19px;
+      box-shadow: 0 4px 12px -2px rgba(2, 132, 199, 0.35);
+      transition: transform 0.2s ease;
+    }
+
+    .brand-icon-box:hover {
+      transform: scale(1.05);
+    }
+
+    .brand-name {
+      font-size: 23px;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      color: var(--text-main);
+    }
+
+    .brand-tagline {
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--text-muted);
+      letter-spacing: 0.01em;
+    }
+
+    /* Card Header / Greeting */
+    .card-header-group {
       text-align: center;
       margin-bottom: 24px;
     }
 
-    .login-brand i {
-      font-size: 38px;
-      color: #0284c7;
-      margin-bottom: 8px;
-    }
-
-    .login-brand h2 {
-      font-size: 24px;
+    .card-heading {
+      font-size: 21px;
       font-weight: 700;
       color: #0f172a;
-      margin: 0;
+      letter-spacing: -0.015em;
+      margin-bottom: 4px;
     }
 
-    .login-brand p {
+    .card-subheading {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    /* Alerts */
+    .alert-box {
+      padding: 11px 14px;
+      border-radius: 9px;
+      font-size: 13px;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      line-height: 1.4;
+      animation: alertFadeIn 0.3s ease;
+    }
+
+    @keyframes alertFadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .alert-danger-custom {
+      background-color: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #b91c1c;
+    }
+
+    .alert-danger-custom i {
+      color: #ef4444;
+      margin-top: 2px;
       font-size: 14px;
-      color: #64748b;
-      margin-top: 4px;
     }
 
-    .form-group label {
+    .alert-success-custom {
+      background-color: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #15803d;
+    }
+
+    .alert-success-custom i {
+      color: #10b981;
+      margin-top: 2px;
+      font-size: 14px;
+    }
+
+    /* Form Layout */
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-label {
+      display: block;
       font-size: 13px;
       font-weight: 600;
       color: #334155;
       margin-bottom: 6px;
-      display: block;
     }
 
-    .input-icon-wrap {
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-icon-left {
+      position: absolute;
+      left: 14px;
+      color: #94a3b8;
+      font-size: 14px;
+      pointer-events: none;
+      transition: color 0.2s ease;
+    }
+
+    .input-field {
+      width: 100%;
+      height: 44px;
+      padding: 0 40px 0 38px;
+      font-size: 14px;
+      font-family: inherit;
+      color: #0f172a;
+      background-color: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-input);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+      outline: none;
+    }
+
+    .input-field::placeholder {
+      color: #94a3b8;
+      font-weight: 400;
+    }
+
+    .input-field:hover {
+      border-color: #cbd5e1;
+    }
+
+    .input-field:focus {
+      border-color: var(--primary);
+      background-color: #ffffff;
+      box-shadow: 0 0 0 3.5px rgba(2, 132, 199, 0.15);
+    }
+
+    .input-field:focus ~ .input-icon-left {
+      color: var(--primary);
+    }
+
+    /* Show / Hide Password Button */
+    .btn-toggle-pwd {
+      position: absolute;
+      right: 4px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 36px;
+      height: 36px;
+      background: transparent;
+      border: none;
+      color: #64748b;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      transition: color 0.2s, background-color 0.2s;
+    }
+
+    .btn-toggle-pwd:hover {
+      color: #0f172a;
+      background-color: #f1f5f9;
+    }
+
+    .btn-toggle-pwd:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 1px;
+    }
+
+    /* Remember Me & Forgot Password Row */
+    .options-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 14px;
+      margin-bottom: 22px;
+      font-size: 13px;
+    }
+
+    .remember-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: #475569;
+      font-weight: 500;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .remember-checkbox {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
+    .forgot-link-disabled {
+      color: #94a3b8;
+      cursor: not-allowed;
+      font-size: 12.5px;
+      font-weight: 500;
+      text-decoration: none;
       position: relative;
     }
 
-    .input-icon-wrap i {
-      position: absolute;
-      left: 14px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #94a3b8;
-      font-size: 14px;
-    }
-
-    .input-icon-wrap input {
+    /* Primary Submit Button */
+    .btn-submit {
       width: 100%;
-      padding: 11px 14px 11px 40px;
-      border: 1px solid #cbd5e1;
-      border-radius: 8px;
-      font-size: 14px;
-      color: #0f172a;
-      transition: all 0.2s ease;
-      box-sizing: border-box;
-    }
-
-    .input-icon-wrap input:focus {
-      outline: none;
-      border-color: #0284c7;
-      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
-    }
-
-    .btn-login {
-      width: 100%;
-      background-color: #0284c7;
+      height: 46px;
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
       color: #ffffff;
       border: none;
-      padding: 12px;
-      border-radius: 8px;
+      border-radius: var(--radius-btn);
       font-size: 15px;
       font-weight: 600;
+      font-family: inherit;
       cursor: pointer;
-      transition: background-color 0.2s;
-      margin-top: 10px;
-    }
-
-    .btn-login:hover {
-      background-color: #0369a1;
-    }
-
-    .register-links {
-      text-align: center;
-      margin-top: 24px;
-      padding-top: 20px;
-      border-top: 1px solid #e2e8f0;
-      font-size: 13px;
-      color: #64748b;
-    }
-
-    .register-links a {
-      color: #0284c7;
-      font-weight: 600;
-      text-decoration: none;
-    }
-
-    .register-links a:hover {
-      text-decoration: underline;
-    }
-
-    .home-back {
-      display: inline-flex;
+      display: flex;
       align-items: center;
-      gap: 6px;
-      color: #94a3b8;
-      font-size: 13px;
-      text-decoration: none;
-      margin-bottom: 16px;
-      transition: color 0.2s;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: var(--shadow-btn);
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
+      position: relative;
+      overflow: hidden;
     }
 
-    .home-back:hover {
-      color: #ffffff;
+    .btn-submit:hover:not(:disabled) {
+      background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px -2px rgba(2, 132, 199, 0.5);
+    }
+
+    .btn-submit:active:not(:disabled) {
+      transform: translateY(0);
+      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.4);
+    }
+
+    .btn-submit:focus-visible {
+      outline: 2px solid #38bdf8;
+      outline-offset: 2px;
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.75;
+      cursor: wait;
+      transform: none;
+    }
+
+    /* Spinner for submitting state */
+    .submit-spinner {
+      display: none;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255, 255, 255, 0.35);
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .btn-submit.loading .submit-spinner {
+      display: inline-block;
+    }
+
+    .btn-submit.loading .btn-text-content {
+      display: none;
+    }
+
+    /* Registration Divider & Section */
+    .register-section {
+      margin-top: 26px;
+      padding-top: 22px;
+      border-top: 1px solid #f1f5f9;
+      text-align: center;
+    }
+
+    .register-header-text {
+      font-size: 13px;
+      font-weight: 500;
+      color: #64748b;
+      margin-bottom: 12px;
+    }
+
+    /* Role Sign Up Cards / Micro-tiles */
+    .role-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .role-tile {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 10px 8px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: var(--radius-tile);
       text-decoration: none;
+      color: inherit;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .role-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      margin-bottom: 6px;
+      transition: transform 0.2s ease, background-color 0.2s ease;
+    }
+
+    .role-tile.patient-tile .role-icon {
+      background-color: #e0f2fe;
+      color: #0284c7;
+    }
+
+    .role-tile.doctor-tile .role-icon {
+      background-color: #ccfbf1;
+      color: #0d9488;
+    }
+
+    .role-tile.shop-tile .role-icon {
+      background-color: #ede9fe;
+      color: #7c3aed;
+    }
+
+    .role-title {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #1e293b;
+      line-height: 1.2;
+    }
+
+    .role-subtitle {
+      font-size: 10.5px;
+      color: #64748b;
+      margin-top: 2px;
+      line-height: 1.15;
+    }
+
+    .role-tile:hover {
+      background-color: #ffffff;
+      border-color: #cbd5e1;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+      text-decoration: none;
+    }
+
+    .role-tile.patient-tile:hover {
+      border-color: #38bdf8;
+    }
+
+    .role-tile.doctor-tile:hover {
+      border-color: #5eead4;
+    }
+
+    .role-tile.shop-tile:hover {
+      border-color: #c4b5fd;
+    }
+
+    .role-tile:hover .role-icon {
+      transform: scale(1.1);
+    }
+
+    .role-tile:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 1px;
+    }
+
+    /* Small Footer Note */
+    .card-footer-note {
+      text-align: center;
+      margin-top: 18px;
+      font-size: 11.5px;
+      color: rgba(255, 255, 255, 0.45);
+      letter-spacing: 0.01em;
+    }
+
+    /* Responsive Queries */
+    @media (max-width: 480px) {
+      body {
+        padding: 16px 12px;
+        align-items: flex-start;
+      }
+
+      .login-container {
+        margin-top: 8px;
+      }
+
+      .login-card {
+        padding: 28px 20px 24px 20px;
+        border-radius: 18px;
+      }
+
+      .card-heading {
+        font-size: 19px;
+      }
+
+      .role-grid {
+        grid-template-columns: 1fr;
+        gap: 6px;
+      }
+
+      .role-tile {
+        flex-direction: row;
+        justify-content: flex-start;
+        text-align: left;
+        padding: 8px 12px;
+        gap: 10px;
+      }
+
+      .role-icon {
+        margin-bottom: 0;
+        flex-shrink: 0;
+      }
+
+      .role-text-wrap {
+        display: flex;
+        flex-direction: column;
+      }
     }
   </style>
 </head>
 <body>
 
-  <div class="login-wrapper">
-    <a href="{% url 'Guest:index' %}" class="home-back">
-      <i class="fas fa-arrow-left"></i> Back to Home
-    </a>
-
-    <div class="login-card">
-      <div class="login-brand">
-        <i class="fas fa-heartbeat"></i>
-        <h2>Welcome to Medicore</h2>
-        <p>Sign in to access your portal</p>
-      </div>
-
-      {% if msg %}
-      <div class="medicore-alert medicore-alert-danger">
-        <i class="fas fa-exclamation-circle"></i>
-        <span>{{ msg }}</span>
-      </div>
-      {% endif %}
-
-      {% if messages %}
-        {% for message in messages %}
-        <div class="medicore-alert {% if message.tags == 'error' %}medicore-alert-danger{% elif message.tags == 'success' %}medicore-alert-success{% else %}medicore-alert-warning{% endif %}">
-          <i class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% elif message.tags == 'success' %}fa-check-circle{% else %}fa-info-circle{% endif %}"></i>
-          <span>{{ message }}</span>
-        </div>
-        {% endfor %}
-      {% endif %}
-
-      <form method="POST">
-        {% csrf_token %}
-
-        <div class="form-group mb-3">
-          <label for="email">Email Address</label>
-          <div class="input-icon-wrap">
-            <i class="fas fa-envelope"></i>
-            <input type="email" id="email" name="email" placeholder="name@example.com" required autocomplete="email">
-          </div>
-        </div>
-
-        <div class="form-group mb-4">
-          <label for="password">Password</label>
-          <div class="input-icon-wrap">
-            <i class="fas fa-lock"></i>
-            <input type="password" id="password" name="password" placeholder="Enter your password" required autocomplete="current-password">
-          </div>
-        </div>
-
-        <button type="submit" class="btn-login">
-          <i class="fas fa-sign-in-alt mr-1"></i> Sign In
-        </button>
-      </form>
-
-      <div class="register-links">
-        <p class="mb-2">Don't have an account yet?</p>
-        <div class="d-flex justify-content-center flex-wrap" style="gap: 12px;">
-          <a href="{% url 'Guest:registration' %}">Patient Sign Up</a>
-          <span>•</span>
-          <a href="{% url 'Guest:doctor' %}">Doctor Join</a>
-          <span>•</span>
-          <a href="{% url 'Guest:shop' %}">Pharmacy Join</a>
-        </div>
-      </div>
-    </div>
+  <!-- Subtle abstract healthcare background SVGs -->
+  <div class="bg-decorations" aria-hidden="true">
+    <!-- Cross 1 -->
+    <svg class="decor-cross-1" viewBox="0 0 100 100" stroke-width="4">
+      <path d="M50 15 L50 85 M15 50 L85 50" />
+    </svg>
+    <!-- Cross 2 -->
+    <svg class="decor-cross-2" viewBox="0 0 100 100" stroke-width="3">
+      <path d="M50 10 L50 90 M10 50 L90 50" />
+    </svg>
+    <!-- ECG / Pulse Curve -->
+    <svg class="decor-pulse" viewBox="0 0 400 120" stroke-width="2.5">
+      <path d="M0 60 L120 60 L140 30 L160 90 L180 40 L200 75 L215 60 L400 60" />
+    </svg>
+    <!-- Circle geometry -->
+    <svg class="decor-circle" viewBox="0 0 100 100" stroke-width="2">
+      <circle cx="50" cy="50" r="42" stroke-dasharray="4 6" />
+    </svg>
   </div>
 
+  <main class="login-container">
+    <!-- Clean Back to Home Link -->
+    <nav class="home-navigation" aria-label="Breadcrumb">
+      <a href="{% url 'Guest:index' %}" class="btn-back-home">
+        <i class="fas fa-arrow-left" aria-hidden="true"></i>
+        <span>Back to Home</span>
+      </a>
+    </nav>
+
+    <!-- Card with subtle glow -->
+    <div class="card-glow-wrap">
+      <div class="login-card">
+        
+        <!-- Branding Presentation -->
+        <header class="brand-section">
+          <div class="brand-badge">
+            <div class="brand-icon-box">
+              <i class="fas fa-heart-pulse" aria-hidden="true"></i>
+            </div>
+            <span class="brand-name">Medicore</span>
+          </div>
+          <p class="brand-tagline">Your healthcare, connected.</p>
+        </header>
+
+        <!-- Welcome Greeting -->
+        <div class="card-header-group">
+          <h1 class="card-heading">Welcome back</h1>
+          <p class="card-subheading">Sign in to access your healthcare portal</p>
+        </div>
+
+        <!-- Alert messages from server -->
+        {% if msg %}
+        <div class="alert-box alert-danger-custom" role="alert">
+          <i class="fas fa-circle-exclamation" aria-hidden="true"></i>
+          <span>{{ msg }}</span>
+        </div>
+        {% endif %}
+
+        {% if messages %}
+          {% for message in messages %}
+          <div class="alert-box {% if message.tags == 'error' %}alert-danger-custom{% elif message.tags == 'success' %}alert-success-custom{% else %}alert-danger-custom{% endif %}" role="alert">
+            <i class="fas {% if message.tags == 'error' %}fa-circle-exclamation{% elif message.tags == 'success' %}fa-circle-check{% else %}fa-circle-info{% endif %}" aria-hidden="true"></i>
+            <span>{{ message }}</span>
+          </div>
+          {% endfor %}
+        {% endif %}
+
+        <!-- Authentication Form -->
+        <form method="POST" id="loginForm" novalidate>
+          {% csrf_token %}
+
+          <!-- Email Input -->
+          <div class="form-group">
+            <label for="email" class="form-label">Email address</label>
+            <div class="input-wrapper">
+              <i class="fas fa-envelope input-icon-left" aria-hidden="true"></i>
+              <input 
+                type="email" 
+                id="email" 
+                name="email" 
+                class="input-field" 
+                placeholder="you@example.com" 
+                required 
+                autocomplete="email"
+                spellcheck="false"
+              >
+            </div>
+          </div>
+
+          <!-- Password Input -->
+          <div class="form-group">
+            <label for="password" class="form-label">Password</label>
+            <div class="input-wrapper">
+              <i class="fas fa-lock input-icon-left" aria-hidden="true"></i>
+              <input 
+                type="password" 
+                id="password" 
+                name="password" 
+                class="input-field" 
+                placeholder="Enter your password" 
+                required 
+                autocomplete="current-password"
+              >
+              <button 
+                type="button" 
+                class="btn-toggle-pwd" 
+                id="togglePasswordBtn" 
+                aria-label="Show password"
+                title="Show password"
+              >
+                <i class="fas fa-eye" id="togglePasswordIcon" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Remember Me & Visual Forgot Password -->
+          <div class="options-row">
+            <label class="remember-label" for="rememberMe">
+              <input type="checkbox" id="rememberMe" name="remember_me" class="remember-checkbox">
+              <span>Remember me</span>
+            </label>
+            <span class="forgot-link-disabled" title="Password recovery is managed by your administrator" aria-disabled="true">
+              Forgot password?
+            </span>
+          </div>
+
+          <!-- Primary Sign In Button -->
+          <button type="submit" class="btn-submit" id="btnSubmit">
+            <span class="submit-spinner" aria-hidden="true"></span>
+            <span class="btn-text-content">
+              <span>Sign In</span>
+              <i class="fas fa-arrow-right" style="font-size: 13px;" aria-hidden="true"></i>
+            </span>
+          </button>
+        </form>
+
+        <!-- New User Registration Section -->
+        <footer class="register-section">
+          <p class="register-header-text">Don't have an account yet?</p>
+          <div class="role-grid">
+            <!-- Patient Link -->
+            <a href="{% url 'Guest:registration' %}" class="role-tile patient-tile">
+              <div class="role-icon">
+                <i class="fas fa-user-plus" aria-hidden="true"></i>
+              </div>
+              <div class="role-text-wrap">
+                <span class="role-title">Patient</span>
+                <span class="role-subtitle">Sign up</span>
+              </div>
+            </a>
+
+            <!-- Doctor Link -->
+            <a href="{% url 'Guest:doctor' %}" class="role-tile doctor-tile">
+              <div class="role-icon">
+                <i class="fas fa-user-doctor" aria-hidden="true"></i>
+              </div>
+              <div class="role-text-wrap">
+                <span class="role-title">Doctor</span>
+                <span class="role-subtitle">Join us</span>
+              </div>
+            </a>
+
+            <!-- Pharmacy Link -->
+            <a href="{% url 'Guest:shop' %}" class="role-tile shop-tile">
+              <div class="role-icon">
+                <i class="fas fa-prescription-bottle-medical" aria-hidden="true"></i>
+              </div>
+              <div class="role-text-wrap">
+                <span class="role-title">Pharmacy</span>
+                <span class="role-subtitle">Register</span>
+              </div>
+            </a>
+          </div>
+        </footer>
+
+      </div>
+    </div>
+
+    <!-- Small subtle security footer -->
+    <p class="card-footer-note">
+      <i class="fas fa-shield-halved mr-1" aria-hidden="true"></i>
+      Secure 256-bit encrypted healthcare platform
+    </p>
+  </main>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // 1. Password Visibility Toggle
+      const pwdInput = document.getElementById('password');
+      const toggleBtn = document.getElementById('togglePasswordBtn');
+      const toggleIcon = document.getElementById('togglePasswordIcon');
+
+      if (toggleBtn && pwdInput && toggleIcon) {
+        toggleBtn.addEventListener('click', function () {
+          const isPassword = pwdInput.getAttribute('type') === 'password';
+          const newType = isPassword ? 'text' : 'password';
+          pwdInput.setAttribute('type', newType);
+
+          if (isPassword) {
+            toggleIcon.classList.remove('fa-eye');
+            toggleIcon.classList.add('fa-eye-slash');
+            toggleBtn.setAttribute('aria-label', 'Hide password');
+            toggleBtn.setAttribute('title', 'Hide password');
+          } else {
+            toggleIcon.classList.remove('fa-eye-slash');
+            toggleIcon.classList.add('fa-eye');
+            toggleBtn.setAttribute('aria-label', 'Show password');
+            toggleBtn.setAttribute('title', 'Show password');
+          }
+        });
+      }
+
+      // 2. Form submission loading state & double-submission prevention
+      const loginForm = document.getElementById('loginForm');
+      const submitBtn = document.getElementById('btnSubmit');
+
+      if (loginForm && submitBtn) {
+        loginForm.addEventListener('submit', function (e) {
+          const emailInput = document.getElementById('email');
+          const passwordInput = document.getElementById('password');
+
+          // Basic validation check before triggering loading animation
+          if (emailInput && !emailInput.value.trim()) {
+            emailInput.focus();
+            return;
+          }
+          if (passwordInput && !passwordInput.value) {
+            passwordInput.focus();
+            return;
+          }
+
+          submitBtn.classList.add('loading');
+          submitBtn.disabled = true;
+          // Re-enable safety timeout in case of client-side validation cancel
+          setTimeout(function () {
+            submitBtn.classList.remove('loading');
+            submitBtn.disabled = false;
+          }, 8000);
+        });
+      }
+    })();
+  </script>
 </body>
 </html>
